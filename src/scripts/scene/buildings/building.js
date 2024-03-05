@@ -1,25 +1,13 @@
 import * as THREE from 'three';
 import { DisplayObject } from '../displayObject.js';
-import { BuildingStatus } from './buildingStatus';
-import { PowerModule } from './modules/power';
-import { RoadAccessModule } from './modules/roadAccess';
+import {BuildingStatus} from "../../sim/buildings/buildingStatus.js";
 
 export class Building extends DisplayObject {
-  /**
-   * The building type
-   * @type {string}
-   */
-  type = 'building';
   /**
    * True if the terrain should not be rendered with this building type
    * @type {boolean}
    */
   hideTerrain = false;
-  /**
-   * The current status of the building
-   * @type {string}
-   */
-  status = BuildingStatus.Ok;
   /**
    * Icon displayed when building status
    * @type {Sprite}
@@ -35,13 +23,9 @@ export class Building extends DisplayObject {
     this.add(this.#statusIcon);
   }
   
-  /**
-   * 
-   * @param {*} status 
-   */
-  setStatus(status) {
-    if (status !== this.status) {
-      switch(status) {
+  refreshView(simulation) {
+    let simBuilding = simulation.getTile(this.x,this.y).building
+      switch(simBuilding.status) {
         case BuildingStatus.NoPower:
           this.#statusIcon.visible = true;
           this.#statusIcon.material.map = window.assetManager.statusIcons[BuildingStatus.NoPower];
@@ -54,11 +38,9 @@ export class Building extends DisplayObject {
           this.#statusIcon.visible = false;
       }
     }
-  }
+
 
   dispose() {
-    this.power.dispose();
-    this.roadAccess.dispose();
     super.dispose();
   }
 }

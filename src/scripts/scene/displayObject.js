@@ -20,7 +20,6 @@ export class DisplayObject extends THREE.Object3D {
    */
   constructor(x = 0, y = 0) {
     super();
-    this.name = 'DisplayObject';
     this.position.x = x;
     this.position.z = y;
   }

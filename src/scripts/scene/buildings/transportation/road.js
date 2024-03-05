@@ -1,16 +1,11 @@
-import * as THREE from 'three';
 import { Building } from '../building.js';
-import { Presentation } from '../../presentation.js';
 import { DEG2RAD } from 'three/src/math/MathUtils.js';
 
 export class Road extends Building {
-  constructor(x, y) {
-    super(x, y);
-    this.type = 'road';
-    this.name = 'Road';
-    this.style = 'straight';
+
+  constructor(x,y) {
+    super(x,y);
     this.hideTerrain = true;
-    this.roadAccess.enabled = false;
   }
 
   /**
@@ -18,68 +13,69 @@ export class Road extends Building {
    * @param {Simulation} simulation
    */
   refreshView(simulation) {
+    let simBuilding = simulation.getTile(this.x,this.y).building
+
     // Check which adjacent tiles are roads
-    let top = (simulation.getTile(this.x, this.y - 1)?.building?.type === this.type) ?? false;
-    let bottom = (simulation.getTile(this.x, this.y + 1)?.building?.type === this.type) ?? false;
-    let left = (simulation.getTile(this.x - 1, this.y)?.building?.type === this.type) ?? false;
-    let right = (simulation.getTile(this.x + 1, this.y)?.building?.type === this.type) ?? false;
+    let top = (simulation.getTile(this.x, this.y - 1)?.building?.type === simBuilding.type) ?? false;
+    let bottom = (simulation.getTile(this.x, this.y + 1)?.building?.type === simBuilding.type) ?? false;
+    let left = (simulation.getTile(this.x - 1, this.y)?.building?.type === simBuilding.type) ?? false;
+    let right = (simulation.getTile(this.x + 1, this.y)?.building?.type === simBuilding.type) ?? false;
 
     // Check all combinations
     // Four-way intersection
     if (top && bottom && left && right) {
-      this.style = 'four-way';
+      simBuilding.style = 'four-way';
       this.rotation.y = 0;
     // T intersection
     } else if (!top && bottom && left && right) { // bottom-left-right
-      this.style = 'three-way';
+      simBuilding.style = 'three-way';
       this.rotation.y  = 0;
     } else if (top && !bottom && left && right) { // top-left-right
-      this.style = 'three-way';
+      simBuilding.style = 'three-way';
       this.rotation.y  = 180 * DEG2RAD;
     } else if (top && bottom && !left && right) { // top-bottom-right
-      this.style = 'three-way';
+      simBuilding.style = 'three-way';
       this.rotation.y  = 90 * DEG2RAD;
     } else if (top && bottom && left && !right) { // top-bottom-left
-      this.style = 'three-way';
+      simBuilding.style = 'three-way';
       this.rotation.y  = 270 * DEG2RAD;
     // Corner
     } else if (top && !bottom && left && !right) { // top-left
-      this.style = 'corner';
+      simBuilding.style = 'corner';
       this.rotation.y  = 180 * DEG2RAD;
     } else if (top && !bottom && !left && right) { // top-right
-      this.style = 'corner';
+      simBuilding.style = 'corner';
       this.rotation.y  = 90 * DEG2RAD;
     } else if (!top && bottom && left && !right) { // bottom-left
-      this.style = 'corner';
+      simBuilding.style = 'corner';
       this.rotation.y  = 270 * DEG2RAD;
     } else if (!top && bottom && !left && right) { // bottom-right
-      this.style = 'corner';
+      simBuilding.style = 'corner';
       this.rotation.y  = 0;
     // Straight
     } else if (top && bottom && !left && !right) { // top-bottom
-      this.style = 'straight';
+      simBuilding.style = 'straight';
       this.rotation.y  = 0;
     } else if (!top && !bottom && left && right) { // left-right
-      this.style = 'straight';
+      simBuilding.style = 'straight';
       this.rotation.y  = 90 * DEG2RAD;
     // Dead end
     } else if (top && !bottom && !left && !right) { // top
-      this.style = 'end';
+      simBuilding.style = 'end';
       this.rotation.y  = 180 * DEG2RAD;
     } else if (!top && bottom && !left && !right) { // bottom
-      this.style = 'end';
+      simBuilding.style = 'end';
       this.rotation.y  = 0;
     } else if (!top && !bottom && left && !right) { // left
-      this.style = 'end';
+      simBuilding.style = 'end';
       this.rotation.y  = 270 * DEG2RAD;
     } else if (!top && !bottom && !left && right) { // right
-      this.style = 'end';
+      simBuilding.style = 'end';
       this.rotation.y  = 90 * DEG2RAD;
     }
 
-    const mesh = window.assetManager.getModel(`road-${this.style}`, this);
+    const mesh = window.assetManager.getModel(`road-${simBuilding.style}`, this);
     this.setMesh(mesh);
-    presentation.vehicleGraph.updateTile(this.x, this.y, this);
   }
 
 }

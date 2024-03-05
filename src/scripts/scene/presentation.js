@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import {BuildingType} from './buildings/buildingType.js';
 import {createBuilding} from './buildings/buildingFactory.js';
 import {Tile} from './tile.js';
 import {VehicleGraph} from './vehicles/vehicleGraph.js';
+import {BuildingType} from "../sim/buildings/buildingType.js";
 
 export class Presentation extends THREE.Group {
     /**
@@ -68,7 +68,7 @@ export class Presentation extends THREE.Group {
                         this.#refreshTileAndNeighbors(displayTile, simulation)
 
                         if (displayTile.building.type === BuildingType.road) {
-                            this.vehicleGraph.updateTile(x, y, tile.building);
+                            this.vehicleGraph.updateTile(x, y, displayTile.building);
                         }
                     } else {
                         displayTile.refreshView(simulation);

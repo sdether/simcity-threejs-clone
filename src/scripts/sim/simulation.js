@@ -97,7 +97,7 @@ export class Simulation {
     }
 
     subscribe(subscriber) {
-        this.subscribers.add(subscriber);
+        this.subscribers.push(subscriber);
     }
 
     notifySubscribers() {

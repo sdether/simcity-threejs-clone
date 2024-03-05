@@ -6,7 +6,6 @@ export class Road extends Building {
     this.type = 'road';
     this.name = 'Road';
     this.style = 'straight';
-    this.hideTerrain = true;
     this.roadAccess.enabled = false;
   }
 
