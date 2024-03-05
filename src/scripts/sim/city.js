@@ -20,7 +20,7 @@ export class City extends THREE.Group {
   root = new THREE.Group();
   /**
    * List of services for the city
-   * @type {SimService}
+   * @type {SimService[]}
    */
   services = [];
   /**

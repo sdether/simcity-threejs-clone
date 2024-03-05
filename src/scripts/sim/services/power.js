@@ -1,7 +1,8 @@
 import { BuildingType } from '../buildings/buildingType.js';
 import { City } from '../city.js';
+import {SimService} from "./simService.js";
 
-export class PowerService {
+export class PowerService extends SimService {
   /**
    * @param {City} city 
    */

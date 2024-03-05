@@ -29,8 +29,7 @@ export class Game {
    */
   selectedObject = null;
 
-  constructor(city) {
-    this.city = city;
+  constructor() {
 
     this.renderer = new THREE.WebGLRenderer({ 
       antialias: true
@@ -141,6 +140,8 @@ export class Game {
 
     if (this.inputManager.isLeftMouseDown) {
       this.useTool();
+    } else if(this.inputManager.isRightMouseDown) {
+      this.maybeBulldoze();
     }
 
     this.renderer.render(this.scene, this.cameraManager.camera);
@@ -157,6 +158,16 @@ export class Game {
 
     window.ui.updateTitleBar(this);
     window.ui.updateInfoPanel(this.selectedObject);
+  }
+
+  /**
+   * Bulldoze tile under cursor
+   */
+  maybeBulldoze() {
+    if (this.focusedObject) {
+      const { x, y } = this.focusedObject;
+      this.city.bulldoze(x, y);
+    }
   }
 
   /**
@@ -205,8 +216,8 @@ export class Game {
   }
 
   /**
-   * Gets the mesh currently under the the mouse cursor. If there is nothing under
-   * the the mouse cursor, returns null
+   * Gets the mesh currently under the mouse cursor. If there is nothing under
+   * the mouse cursor, returns null
    * @param {MouseEvent} event Mouse event
    * @returns {THREE.Mesh | null}
    */
