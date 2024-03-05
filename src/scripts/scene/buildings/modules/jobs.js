@@ -1,6 +1,6 @@
 import config from '../../../config.js';
 import { Citizen } from '../../citizen.js';
-import { World } from '../../world.js';
+import { City } from '../../city.js';
 import { Zone } from '../../buildings/zones/zone.js';
 import { DevelopmentState } from './development.js';
 import { SimModule } from './simModule.js';
@@ -52,9 +52,9 @@ export class JobsModule extends SimModule {
 
   /**
    * Steps the state of the zone forward in time by one simulation step
-   * @param {World} city
+   * @param {City} city 
    */
-  simulate(world) {
+  simulate(city) {
     // If building is abandoned, all workers are laid off and no
     // more workers are allowed to work here
     if (this.#zone.development.state === DevelopmentState.abandoned) {

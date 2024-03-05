@@ -30,6 +30,11 @@ export class PowerPlant extends Building {
     }
   }
 
+  refreshView() {
+    let mesh = window.assetManager.getModel(this.type, this);
+    this.setMesh(mesh);
+  }
+
   /**
    * Returns an HTML representation of this object
    * @returns {string}

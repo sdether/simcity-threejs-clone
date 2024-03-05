@@ -1,5 +1,5 @@
 import config from '../../../config.js';
-import { World } from '../../world.js';
+import { City } from '../../city.js';
 import { Building } from '../building.js';
 import { SimModule } from './simModule.js';
 
@@ -31,7 +31,7 @@ export class RoadAccessModule extends SimModule {
 
   /**
    * Updates the state of this attribute
-   * @param {World} city
+   * @param {City} city 
    */
   simulate(city) {
     if (!this.enabled) {

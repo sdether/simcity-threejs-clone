@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { SimObject } from '../simObject';
 import { BuildingStatus } from './buildingStatus';
 import { PowerModule } from './modules/power';
@@ -27,9 +28,19 @@ export class Building extends SimObject {
    * @type {string}
    */
   status = BuildingStatus.Ok;
+  /**
+   * Icon displayed when building status
+   * @type {Sprite}
+   */
+  #statusIcon = new THREE.Sprite();
 
   constructor() {
     super();
+    this.#statusIcon.visible = false;
+    this.#statusIcon.material = new THREE.SpriteMaterial({ depthTest: false })
+    this.#statusIcon.layers.set(1);
+    this.#statusIcon.scale.set(0.5, 0.5, 0.5);
+    this.add(this.#statusIcon);
   }
   
   /**
@@ -37,7 +48,20 @@ export class Building extends SimObject {
    * @param {*} status 
    */
   setStatus(status) {
-    this.status = status
+    if (status !== this.status) {
+      switch(status) {
+        case BuildingStatus.NoPower:
+          this.#statusIcon.visible = true;
+          this.#statusIcon.material.map = window.assetManager.statusIcons[BuildingStatus.NoPower];
+          break;
+        case BuildingStatus.NoRoadAccess:
+          this.#statusIcon.visible = true;
+          this.#statusIcon.material.map = window.assetManager.statusIcons[BuildingStatus.NoRoadAccess];
+          break;
+        default:
+          this.#statusIcon.visible = false;
+      }
+    }
   }
 
   simulate(city) {
@@ -60,7 +84,7 @@ export class Building extends SimObject {
     this.roadAccess.dispose();
     super.dispose();
   }
-
+  
   /**
    * Returns an HTML representation of this object
    * @returns {string}

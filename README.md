@@ -17,6 +17,16 @@ This is not an attempt to improve or comment on the design and decisions of Dani
 The goals of this project are entirely different and are only taking advantage of the
 excellent base his project provides for presentation experimentation.
 
+## How do I run this locally?
+
+You will first need to install [Node.js](https://nodejs.org).
+
+After that, clone this repository, navigate to the root directory and run the following command
+
+```bash
+npm run dev
+```
+
 ## License
 
 This code is covered by the MIT License. TLDR; you can do whatever you want with it!

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { AssetManager } from './assets/assetManager.js';
 import { CameraManager } from './camera.js';
 import { InputManager } from './input.js';
-import { City } from './sim/city.js';
-import { SimObject } from './sim/simObject.js';
+import { City } from './scene/city.js';
+import { SimObject } from './scene/simObject.js';
 
 /** 
  * Manager for the Three.js scene. Handles rendering of a `City` object

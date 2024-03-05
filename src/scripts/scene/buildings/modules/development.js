@@ -1,5 +1,5 @@
 import config from '../../../config.js';
-import { World } from '../../world.js';
+import { City } from '../../city.js';
 import { Zone } from '../../buildings/zones/zone.js';
 import { SimModule } from './simModule.js';
 
@@ -76,7 +76,7 @@ export class DevelopmentModule extends SimModule {
   }
 
   /**
-   * @param {World} city
+   * @param {City} city 
    */
   simulate(city) {
     this.#checkAbandonmentCriteria();
@@ -118,7 +118,7 @@ export class DevelopmentModule extends SimModule {
   }
 
   /**
-   * @param {World} city
+   * @param {City} city 
    * @returns 
    */
   #checkDevelopmentCriteria() {
@@ -129,7 +129,7 @@ export class DevelopmentModule extends SimModule {
   }
 
   /**
-   * @param {World} city
+   * @param {City} city 
    * @returns 
    */
   #checkAbandonmentCriteria() {

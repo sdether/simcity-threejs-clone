@@ -1,9 +1,9 @@
-import { World } from '../../world.js';
+import { City } from '../../city.js';
+import { Zone } from './zone.js';
 import { JobsModule } from '../modules/jobs.js';
 import { BuildingType } from '../buildingType.js';
-import { Zone } from './zone.js';
 
-export class IndustrialZone extends Zone {
+export class CommercialZone extends Zone {
   /**
    * @type {JobsModule}
    */
@@ -12,16 +12,16 @@ export class IndustrialZone extends Zone {
   constructor(x, y) {
     super(x, y);
     this.name = generateBusinessName();
-    this.type = BuildingType.industrial;
+    this.type = BuildingType.commercial;
   }
 
   /**
    * Steps the state of the zone forward in time by one simulation step
-   * @param {World} world
+   * @param {City} city 
    */
-  simulate(world) {
-    super.simulate(world);
-    this.jobs.simulate(world);
+  simulate(city) {
+    super.simulate(city);
+    this.jobs.simulate();
   }
 
   /**
@@ -44,11 +44,11 @@ export class IndustrialZone extends Zone {
 }
 
 // Arrays of words for generating business names
-const prefixes = ['Apex', 'Vortex', 'Elevate', 'Zenith', 'Nova', 'Synapse', 'Pulse', 'Enigma', 'Catalyst', 'Axiom'];
-const suffixes = ['Dynamics', 'Ventures', 'Solutions', 'Technologies', 'Innovations', 'Industries', 'Enterprises', 'Systems', 'Mechanics', 'Manufacturing'];
+const prefixes = ['Prime', 'Elite', 'Global', 'Exquisite', 'Vibrant', 'Luxury', 'Innovative', 'Sleek', 'Premium', 'Dynamic'];
+const suffixes = ['Commerce', 'Trade', 'Marketplace', 'Ventures', 'Enterprises', 'Retail', 'Group', 'Emporium', 'Boutique', 'Mall'];
 const businessSuffixes = ['LLC', 'Inc.', 'Co.', 'Corp.', 'Ltd.'];
 
-// Function to generate a random industrial business name
+// Function to generate a random commercial business name
 function generateBusinessName() {
   const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
   const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
