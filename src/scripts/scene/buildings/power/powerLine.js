@@ -16,10 +16,9 @@ export class PowerLine extends Building {
   constructor(x, y) {
     super(x, y);
     this.type = BuildingType.powerLine;
-    this.roadAccess.enabled = false;
   }
 
-  refreshView(city) {
+  refreshView(simulation) {
     let group = new THREE.Group();
     
     // Merge two powerline models, offset by 90 degrees
@@ -27,10 +26,10 @@ export class PowerLine extends Building {
     tower.rotation.y = Math.PI / 4;
     
     // Check which adjacent tiles are powerlines
-    let top = (city.getTile(this.x, this.y - 1)?.building?.type === this.type) ?? false;
-    let bottom = (city.getTile(this.x, this.y + 1)?.building?.type === this.type) ?? false;
-    let left = (city.getTile(this.x - 1, this.y)?.building?.type === this.type) ?? false;
-    let right = (city.getTile(this.x + 1, this.y)?.building?.type === this.type) ?? false;
+    let top = (simulation.getTile(this.x, this.y - 1)?.building?.type === this.type) ?? false;
+    let bottom = (simulation.getTile(this.x, this.y + 1)?.building?.type === this.type) ?? false;
+    let left = (simulation.getTile(this.x - 1, this.y)?.building?.type === this.type) ?? false;
+    let right = (simulation.getTile(this.x + 1, this.y)?.building?.type === this.type) ?? false;
 
     group.add(tower);
     

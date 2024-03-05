@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { Building } from './buildings/building.js';
-import { SimObject } from './simObject.js';
+import { DisplayObject } from './displayObject.js';
 
-export class Tile extends SimObject {
+export class Tile extends DisplayObject {
   /**
    * The type of terrain
    * @type {string}
@@ -16,8 +16,7 @@ export class Tile extends SimObject {
 
   constructor(x, y) {
     super(x, y);
-    this.name = `Tile-${this.x}-${this.y}`;
-  }
+   }
 
   /**
    * @type {Building}
@@ -44,8 +43,8 @@ export class Tile extends SimObject {
     }
   }
 
-  refreshView(city) {
-    this.building?.refreshView(city);
+  refreshView(simulation) {
+    this.building?.refreshView(simulation);
     if (this.building?.hideTerrain) {
       this.setMesh(null);
     } else {
@@ -56,40 +55,5 @@ export class Tile extends SimObject {
       mesh.name = this.terrain;
       this.setMesh(mesh);
     }
-  }
-
-  simulate(city) {
-    this.building?.simulate(city);
-  }
-
-  /**
-   * Gets the Manhattan distance between two tiles
-   * @param {Tile} tile 
-   * @returns 
-   */
-  distanceTo(tile) {
-    return Math.abs(this.x - tile.x) + Math.abs(this.y - tile.y);
-  }
-
-  /**
-   * 
-   * @returns {string} HTML representation of this object
-   */
-  toHTML() {
-    let html = `
-      <div class="info-heading">Tile</div>
-      <span class="info-label">Coordinates </span>
-      <span class="info-value">X: ${this.x}, Y: ${this.y}</span>
-      <br>
-      <span class="info-label">Terrain </span>
-      <span class="info-value">${this.terrain}</span>
-      <br>
-    `;
-
-    if (this.building) {
-      html += this.building.toHTML();
-    }
-
-    return html;
   }
 };

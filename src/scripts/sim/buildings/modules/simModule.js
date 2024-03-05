@@ -1,9 +1,9 @@
-import { World } from '../../world.js';
+import { Simulation } from '../../simulation.js';
 
 export class SimModule {
   /**
    * Simulates one day passing
-   * @param {World} city
+   * @param {Simulation} city
    */
   simulate(city) {
     // Implement in subclass

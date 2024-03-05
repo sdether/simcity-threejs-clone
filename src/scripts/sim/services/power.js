@@ -1,10 +1,10 @@
 import { BuildingType } from '../buildings/buildingType.js';
-import { World } from '../world.js';
+import { Simulation } from '../simulation.js';
 import {SimService} from "./simService.js";
 
 export class PowerService extends SimService {
   /**
-   * @param {World} city
+   * @param {Simulation} city
    */
   simulate(city) {
     // Find all power plants in the city

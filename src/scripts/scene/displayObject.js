@@ -1,10 +1,9 @@
 import * as THREE from 'three';
-import { SimModule } from './buildings/modules/simModule';
 
 const SELECTED_COLOR = 0xaaaa55;
 const HIGHLIGHTED_COLOR = 0x555555;
 
-export class SimObject extends THREE.Object3D {
+export class DisplayObject extends THREE.Object3D {
   /**
    * @type {THREE.Mesh?}
    */
@@ -21,7 +20,7 @@ export class SimObject extends THREE.Object3D {
    */
   constructor(x = 0, y = 0) {
     super();
-    this.name = 'SimObject';
+    this.name = 'DisplayObject';
     this.position.x = x;
     this.position.z = y;
   }
@@ -59,14 +58,6 @@ export class SimObject extends THREE.Object3D {
     if (this.#mesh) {
       this.add(this.#mesh);
     }
-  }
-
-  /**
-   * Updates the state of this object by one simulation step
-   * @param {City} city 
-   */
-  simulate(city) {
-    // Override in subclass
   }
 
   setSelected(value) {

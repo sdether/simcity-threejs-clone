@@ -2,20 +2,25 @@ import * as THREE from 'three';
 import { AssetManager } from './assets/assetManager.js';
 import { CameraManager } from './camera.js';
 import { InputManager } from './input.js';
-import { City } from './scene/city.js';
-import { SimObject } from './scene/simObject.js';
+import { Presentation } from './scene/presentation.js';
+import { DisplayObject } from './scene/displayObject.js';
+import {Simulation} from "./sim/simulation.js";
 
 /** 
  * Manager for the Three.js scene. Handles rendering of a `City` object
  */
 export class Game {
   /**
-   * @type {City}
+   * @type {Presentation}
    */
-  city;
+  presentation;
+  /**
+   * @type {Simulation}
+   */
+  simulation;
   /**
    * Object that currently hs focus
-   * @type {SimObject | null}
+   * @type {DisplayObject | null}
    */
   focusedObject = null;
   /**
@@ -25,10 +30,16 @@ export class Game {
   inputManager;
   /**
    * Object that is currently selected
-   * @type {SimObject | null}
+   * @type {DisplayObject | null}
    */
   selectedObject = null;
 
+  get selectedTile() {
+    if( this.selectedObject == null) {
+      return null
+    }
+    return this.simulation.getTile(this.selectedObject.x, this.selectedObject.y)
+  }
   constructor() {
 
     this.renderer = new THREE.WebGLRenderer({ 
@@ -57,11 +68,13 @@ export class Game {
     window.assetManager = new AssetManager(() => {
       window.ui.hideLoadingText();
 
-      this.city = new City(16);
-      this.initialize(this.city);
+      this.simulation = new Simulation(16);
+      this.simulation.subscribe(this.simulationUpdated.bind(this))
+      this.presentation = new Presentation(this.simulation);
+
+      this.initialize(this.presentation);
       this.start();
 
-      setInterval(this.simulate.bind(this), 1000);
     });
 
     window.addEventListener('resize', this.onResize.bind(this), false);
@@ -70,11 +83,11 @@ export class Game {
   /**
    * Initalizes the scene, clearing all existing assets
    */
-  initialize(city) {
+  initialize(presentation) {
     this.scene.clear();
-    this.scene.add(city);
+    this.scene.add(presentation);
     this.#setupLights();
-    this.#setupGrid(city);
+    this.#setupGrid(presentation);
   }
 
   #setupGrid(city) {
@@ -135,7 +148,7 @@ export class Game {
    * Render the contents of the scene
    */
   draw() {
-    this.city.draw();
+    this.presentation.draw();
     this.updateFocusedObject();
 
     if (this.inputManager.isLeftMouseDown) {
@@ -147,18 +160,12 @@ export class Game {
     this.renderer.render(this.scene, this.cameraManager.camera);
   }
 
-  /**
-   * Moves the simulation forward by one step
-   */
-  simulate() {
-    if (window.ui.isPaused) return;
-
-    // Update the city data model first, then update the scene
-    this.city.simulate(1);
-
+  simulationUpdated() {
+    this.presentation.update(this.simulation)
     window.ui.updateTitleBar(this);
-    window.ui.updateInfoPanel(this.selectedObject);
+    window.ui.updateInfoPanel(this.selectedTile);
   }
+
 
   /**
    * Bulldoze tile under cursor
@@ -166,7 +173,7 @@ export class Game {
   maybeBulldoze() {
     if (this.focusedObject) {
       const { x, y } = this.focusedObject;
-      this.city.bulldoze(x, y);
+      this.presentation.bulldoze(x, y);
     }
   }
 
@@ -177,18 +184,18 @@ export class Game {
     switch (window.ui.activeToolId) {
       case 'select':
         this.updateSelectedObject();
-        window.ui.updateInfoPanel(this.selectedObject);
+        window.ui.updateInfoPanel(this.selectedTile);
         break;
       case 'bulldoze':
         if (this.focusedObject) {
           const { x, y } = this.focusedObject;
-          this.city.bulldoze(x, y);
+          this.simulation.bulldoze(x, y);
         }
         break;
       default:
         if (this.focusedObject) {
           const { x, y } = this.focusedObject;
-          this.city.placeBuilding(x, y, window.ui.activeToolId);
+          this.simulation.placeBuilding(x, y, window.ui.activeToolId);
         }
         break;
     }
@@ -229,7 +236,7 @@ export class Game {
 
     this.raycaster.setFromCamera(coords, this.cameraManager.camera);
 
-    let intersections = this.raycaster.intersectObjects(this.city.root.children, true);
+    let intersections = this.raycaster.intersectObjects(this.presentation.root.children, true);
     if (intersections.length > 0) {
       // The SimObject attached to the mesh is stored in the user data
       const selectedObject = intersections[0].object.userData;

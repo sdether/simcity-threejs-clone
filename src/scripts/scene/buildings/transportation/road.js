@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Building } from '../building.js';
-import { City } from '../../city.js';
+import { Presentation } from '../../presentation.js';
 import { DEG2RAD } from 'three/src/math/MathUtils.js';
 
 export class Road extends Building {
@@ -15,14 +15,14 @@ export class Road extends Building {
 
   /**
    * Updates the road mesh based on which adjacent tiles are roads as well
-   * @param {City} city 
+   * @param {Simulation} simulation
    */
-  refreshView(city) {
+  refreshView(simulation) {
     // Check which adjacent tiles are roads
-    let top = (city.getTile(this.x, this.y - 1)?.building?.type === this.type) ?? false;
-    let bottom = (city.getTile(this.x, this.y + 1)?.building?.type === this.type) ?? false;
-    let left = (city.getTile(this.x - 1, this.y)?.building?.type === this.type) ?? false;
-    let right = (city.getTile(this.x + 1, this.y)?.building?.type === this.type) ?? false;
+    let top = (simulation.getTile(this.x, this.y - 1)?.building?.type === this.type) ?? false;
+    let bottom = (simulation.getTile(this.x, this.y + 1)?.building?.type === this.type) ?? false;
+    let left = (simulation.getTile(this.x - 1, this.y)?.building?.type === this.type) ?? false;
+    let right = (simulation.getTile(this.x + 1, this.y)?.building?.type === this.type) ?? false;
 
     // Check all combinations
     // Four-way intersection
@@ -79,20 +79,7 @@ export class Road extends Building {
 
     const mesh = window.assetManager.getModel(`road-${this.style}`, this);
     this.setMesh(mesh);
-    city.vehicleGraph.updateTile(this.x, this.y, this);
+    presentation.vehicleGraph.updateTile(this.x, this.y, this);
   }
 
-  /**
-   * Returns an HTML representation of this object
-   * @returns {string}
-   */
-  toHTML() {
-    let html = super.toHTML();
-    html += `
-    <span class="info-label">Style </span>
-    <span class="info-value">${this.style}</span>
-    <br>
-    `;
-    return html;
-  }
 }

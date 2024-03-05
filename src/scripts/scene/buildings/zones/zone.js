@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { DEG2RAD } from 'three/src/math/MathUtils.js';
-import { DevelopmentModule, DevelopmentState } from '../modules/development.js';
+import { DevelopmentState } from '../../../sim/buildings/modules/development.js';
 import { Building } from '../building.js';
 
 /**
@@ -12,11 +12,6 @@ export class Zone extends Building {
    */
   style = ['A', 'B', 'C'][Math.floor(3 * Math.random())];
 
-  /**
-   * @type {DevelopmentModule}
-   */
-  development = new DevelopmentModule(this);
-
   constructor(x = 0, y = 0) {
     super(x, y);
     
@@ -27,22 +22,23 @@ export class Zone extends Building {
     this.rotation.y = 90 * Math.floor(4 * Math.random()) * DEG2RAD;
   }
 
-  refreshView() {
+  refreshView(simulation) {
+    let simBuilding = simulation.getTile(this.x,this.y).building
     let modelName;
-    switch (this.development.state) {
+    switch (simBuilding.development.state) {
       case DevelopmentState.underConstruction:
       case DevelopmentState.undeveloped:
         modelName = 'under-construction';
         break;
       default:
-        modelName = `${this.type}-${this.style}${this.development.level}`;
+        modelName = `${this.type}-${this.style}${simBuilding.development.level}`;
         break;
     }
 
     let mesh = window.assetManager.getModel(modelName, this);
 
     // Tint building a dark color if it is abandoned
-    if (this.development.state === DevelopmentState.abandoned) {
+    if (simBuilding.development.state === DevelopmentState.abandoned) {
       mesh.traverse((obj) => {
         if (obj.material) {
           obj.material.color = new THREE.Color(0x707070);
@@ -53,18 +49,4 @@ export class Zone extends Building {
     this.setMesh(mesh);
   }
 
-  simulate(city) {
-    super.simulate(city);
-    this.development.simulate(city);
-  }
-
-  /**
-   * Returns an HTML representation of this object
-   * @returns {string}
-   */
-  toHTML() {
-    let html = super.toHTML();
-    html += this.development.toHTML();
-    return html;
-  }
 }

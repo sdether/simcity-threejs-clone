@@ -1,6 +1,6 @@
 import config from '../../../config.js';
 import { Citizen } from '../../citizen.js';
-import { World } from '../../world.js';
+import { Simulation } from '../../simulation.js';
 import { Zone as ResidentialZone } from '../../buildings/zones/zone.js';
 import { DevelopmentState } from './development.js';
 import { SimModule } from './simModule.js';
@@ -44,7 +44,7 @@ export class ResidentsModule extends SimModule {
   }
 
   /**
-   * @param {World} city
+   * @param {Simulation} city
    */
   simulate(city) {
     // If building is abandoned, all residents are evicted and no more residents are allowed to move in.

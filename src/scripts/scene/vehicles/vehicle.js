@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 import { VehicleGraphNode } from './vehicleGraphNode.js';
 import config from '../../config.js';
-import { SimObject } from '../simObject.js';
+import { DisplayObject } from '../displayObject.js';
 import models from '../../assets/models.js';
 
 const FORWARD = new THREE.Vector3(1, 0, 0);
 
-export class Vehicle extends SimObject {
+export class Vehicle extends DisplayObject {
   constructor(origin, destination) {
     super();
 
