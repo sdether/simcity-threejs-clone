@@ -12,11 +12,13 @@ export const SimulationState = {
 export class Simulation {
 
     state = SimulationState.Stopped;
+
+    intervalId = 0;
+
     /**
      * List of services for the city
      * @type {SimService[]}
      */
-    intervalId = 0;
 
     services = [];
     /**
@@ -88,12 +90,12 @@ export class Simulation {
 
     start() {
         if (this.state === SimulationState.Running) return;
-        self.intervalId = setInterval(this.tick.bind(this), 1000);
+        this.intervalId = setInterval(this.tick.bind(this), 1000);
     }
 
     stop() {
         if (this.state === SimulationState.Stopped) return;
-        clearInterval(self.intervalId);
+        clearInterval(this.intervalId);
     }
 
     subscribe(subscriber) {

@@ -134,6 +134,7 @@ export class Game {
    * Starts the renderer
    */
   start() {
+    this.simulation.start()
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
 
@@ -142,6 +143,7 @@ export class Game {
    */
   stop() {
     this.renderer.setAnimationLoop(null);
+    this.simulation.stop()
   }
 
   /**
@@ -173,7 +175,7 @@ export class Game {
   maybeBulldoze() {
     if (this.focusedObject) {
       const { x, y } = this.focusedObject;
-      this.presentation.bulldoze(x, y);
+      this.simulation.bulldoze(x, y);
     }
   }
 

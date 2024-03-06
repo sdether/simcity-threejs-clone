@@ -44,12 +44,12 @@ export class ResidentsModule extends SimModule {
   }
 
   /**
-   * @param {Simulation} city
+   * @param {Simulation} simulation
    */
-  simulate(city) {
+  simulate(simulation) {
     // If building is abandoned, all residents are evicted and no more residents are allowed to move in.
     if (this.#zone.development.state === DevelopmentState.abandoned && this.#residents.length > 0) {
-      this.evictAll();
+      this.#evictAll();
     } else if (this.#zone.development.state === DevelopmentState.developed) {
       // Move in new residents if there is room
       if (this.#residents.length < this.maximum && Math.random() < config.modules.residents.residentMoveInChance) {
@@ -58,7 +58,7 @@ export class ResidentsModule extends SimModule {
     }
 
     for (const resident of this.#residents) {
-      resident.simulate(city);
+      resident.simulate(simulation);
     }
   }
 

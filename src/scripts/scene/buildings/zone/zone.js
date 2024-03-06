@@ -28,7 +28,7 @@ export class Zone extends Building {
         modelName = 'under-construction';
         break;
       default:
-        modelName = `${this.type}-${this.style}${simBuilding.development.level}`;
+        modelName = `${simBuilding.type}-${this.style}${simBuilding.development.level}`;
         break;
     }
 

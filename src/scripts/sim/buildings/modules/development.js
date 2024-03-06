@@ -63,7 +63,6 @@ export class DevelopmentModule extends SimModule {
 
   set level(value) {
     this.#level = value;
-    this.#zone.refreshView();
   }
 
   get state() {
@@ -72,7 +71,6 @@ export class DevelopmentModule extends SimModule {
 
   set state(value) {
     this.#state = value;
-    this.#zone.refreshView();
   }
 
   /**

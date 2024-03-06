@@ -67,9 +67,9 @@ export class Citizen {
 
   /**
    * Steps the state of the citizen forward in time by one simulation step
-   * @param {object} city 
+   * @param {Simulation} simulation
    */
-  simulate(city) {
+  simulate(simulation) {
     switch (this.state) {
       case 'idle':
       case 'school':
@@ -81,7 +81,7 @@ export class Citizen {
         break;
       case 'unemployed':
         // Action - Look for a job
-        this.workplace = this.#findJob(city);
+        this.workplace = this.#findJob(simulation);
 
         // Transitions
         if (this.workplace) {
@@ -117,11 +117,11 @@ export class Citizen {
 
   /**
    * Search for a job nearby
-   * @param {object} city 
+   * @param {Simulation} simulation
    * @returns 
    */
-  #findJob(city) {
-    const tile = city.findTile(this.residence, (tile) => {
+  #findJob(simulation) {
+    const tile = simulation.findTile(this.residence, (tile) => {
       // Search for an industrial or commercial building with at least one available job
       if (tile.building?.type === 'industrial' || 
           tile.building?.type === 'commercial') {

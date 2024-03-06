@@ -52,9 +52,9 @@ export class JobsModule extends SimModule {
 
   /**
    * Steps the state of the zone forward in time by one simulation step
-   * @param {Simulation} city
+   * @param {Simulation} simulation
    */
-  simulate(world) {
+  simulate(simulation) {
     // If building is abandoned, all workers are laid off and no
     // more workers are allowed to work here
     if (this.#zone.development.state === DevelopmentState.abandoned) {
