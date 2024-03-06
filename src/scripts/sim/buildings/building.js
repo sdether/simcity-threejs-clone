@@ -28,10 +28,10 @@ export class Building extends SimObject {
    */
   status = BuildingStatus.Ok;
 
-  constructor() {
-    super();
+  constructor(x, y) {
+    super(x, y);
   }
-  
+
   /**
    * 
    * @param {*} status 

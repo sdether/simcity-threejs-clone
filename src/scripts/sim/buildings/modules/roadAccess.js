@@ -1,48 +1,50 @@
 import config from '../../../config.js';
-import { Simulation } from '../../simulation.js';
-import { Building } from '../building.js';
-import { SimModule } from './simModule.js';
+import {Simulation} from '../../simulation.js';
+import {Building} from '../building.js';
+import {SimModule} from './simModule.js';
 
 /**
  * Logic for determining whether or not a tile has road access
  */
 export class RoadAccessModule extends SimModule {
-  /**
-   * @type {Building}
-   */
-  building;
-  /**
-   * @type {boolean}
-   */
-  enabled = true;
-  /**
-   * Whether or not the tile has access to a road
-   * @type {boolean}
-   */
-  value;
+    /**
+     * @type {Building}
+     */
+    building;
+    /**
+     * @type {boolean}
+     */
+    enabled = true;
+    /**
+     * Whether or not the tile has access to a road
+     * @type {boolean}
+     */
+    value;
 
-  /**
-   * @param {Building} building 
-   */
-  constructor(building) {
-    super();
-    this.building = building;
-  }
-
-  /**
-   * Updates the state of this attribute
-   * @param {Simulation} city
-   */
-  simulate(city) {
-    if (!this.enabled) {
-      this.value = true;
-    } else {
-      const road = city.findTile(
-        this.building, 
-        (tile) => tile.building?.type === 'road', 
-        config.modules.roadAccess.searchDistance);
-
-      this.value = (road !== null);
+    /**
+     * @param {Building} building
+     */
+    constructor(building) {
+        super();
+        this.building = building;
     }
-  }
+
+    /**
+     * Updates the state of this attribute
+     * @param {Simulation} simulation
+     */
+    simulate(simulation) {
+        if (!this.enabled) {
+            this.value = true;
+        } else {
+            const road = simulation.findTile(
+                this.building,
+                (tile) => {
+                    return tile.building?.type === 'road'
+                },
+                config.modules.roadAccess.searchDistance);
+
+            this.value = (road !== null);
+        }
+    }
 }

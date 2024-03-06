@@ -74,9 +74,9 @@ export class DevelopmentModule extends SimModule {
   }
 
   /**
-   * @param {Simulation} city
+   * @param {Simulation} simulation
    */
-  simulate(city) {
+  simulate(simulation) {
     this.#checkAbandonmentCriteria();
 
     switch (this.state) {
@@ -115,10 +115,6 @@ export class DevelopmentModule extends SimModule {
     }
   }
 
-  /**
-   * @param {Simulation} city
-   * @returns 
-   */
   #checkDevelopmentCriteria() {
     return (
       this.#zone.roadAccess.value && 

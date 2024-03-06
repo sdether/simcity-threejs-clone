@@ -91,11 +91,13 @@ export class Simulation {
     start() {
         if (this.state === SimulationState.Running) return;
         this.intervalId = setInterval(this.tick.bind(this), 1000);
+        this.state = SimulationState.Running;
     }
 
     stop() {
         if (this.state === SimulationState.Stopped) return;
         clearInterval(this.intervalId);
+        this.state = SimulationState.Stopped;
     }
 
     subscribe(subscriber) {

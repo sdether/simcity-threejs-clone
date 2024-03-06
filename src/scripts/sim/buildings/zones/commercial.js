@@ -17,11 +17,11 @@ export class CommercialZone extends Zone {
 
   /**
    * Steps the state of the zone forward in time by one simulation step
-   * @param {Simulation} world
+   * @param {Simulation} simulation
    */
-  simulate(world) {
-    super.simulate(world);
-    this.jobs.simulate(world);
+  simulate(simulation) {
+    super.simulate(simulation);
+    this.jobs.simulate(simulation);
   }
 
   /**
