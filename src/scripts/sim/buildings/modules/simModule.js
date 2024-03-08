@@ -2,25 +2,18 @@ import { Simulation } from '../../simulation.js';
 
 export class SimModule {
   /**
-   * Simulates one day passing
-   * @param {Simulation} city
+   * @param {World} world
+   * @param {Building} building
    */
-  simulate(city) {
+  simulate(world, building) {
     // Implement in subclass
   }
 
   /**
-   * Cleans up this module, disposing of any assets and unlinking any references
+   * @param {World} world
+   * @param {Building} building
    */
-  dispose() {
-    // Implement in subclass
-  }
-
-  /**
-   * Returns an HTML representation of this object
-   * @returns {string}
-   */
-  toHTML() {
-    // Implement in subclass
+  dispose(world, building) {
+    // default does nothing
   }
 }

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { DEG2RAD } from 'three/src/math/MathUtils.js';
-import { DevelopmentState } from '../../../sim/buildings/modules/development.js';
 import { Building } from '../building.js';
+import {DevelopmentState} from "../../../model/buildings/zones/zone.js";
+import {getTile} from "../../../sim/tileTools.js";
 
 /**
  * Represents a zoned building such as residential, commercial or industrial
@@ -19,8 +20,12 @@ export class Zone extends Building {
     this.rotation.y = 90 * Math.floor(4 * Math.random()) * DEG2RAD;
   }
 
-  refreshView(simulation) {
-    let simBuilding = simulation.getTile(this.x,this.y).building
+  /**
+   *
+   * @param {World} world
+   */
+  refreshView(world) {
+    let simBuilding = getTile(world, this.x,this.y).building
     let modelName;
     switch (simBuilding.development.state) {
       case DevelopmentState.underConstruction:

@@ -1,12 +1,10 @@
 import { Building } from '../building.js';
 
 export class Road extends Building {
-  constructor(x, y) {
-    super(x, y);
-    this.type = 'road';
+  constructor(tile, type) {
+    super(tile, type)
     this.name = 'Road';
     this.style = 'straight';
-    this.roadAccess.enabled = false;
   }
 
   /**

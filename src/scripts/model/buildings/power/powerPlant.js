@@ -1,5 +1,6 @@
 import { Building } from '../building.js';
 import { BuildingType } from '../buildingType.js';
+import {PowerConsumer} from "./powerConsumer.js";
 
 export class PowerPlant extends Building {
 
@@ -13,21 +14,20 @@ export class PowerPlant extends Building {
    */
   powerConsumed = 0;
 
-  constructor(x, y) {
-    super(x, y);
-    this.type = BuildingType.powerPlant;
-  }
-
   /**
    * Gets the amount of power available
    */
   get powerAvailable() {
     // Power plant must have road access in order to provide power
-    if (this.roadAccess.value) {
+    if (this.hasRoadAccess) {
       return this.powerCapacity - this.powerConsumed;
     } else {
       return 0;
     }
+  }
+
+  constructor(tile, type) {
+    super(tile, type, null, true)
   }
 
   /**
@@ -36,6 +36,13 @@ export class PowerPlant extends Building {
    */
   toHTML() {
     let html = super.toHTML();
+    if (this.needsRoadAccess) {
+      html += `
+              <div class="info-heading">Building</div>
+              <span class="info-label">Road Access </span>
+              <span class="info-value">${this.hasRoadAccess}</span>
+              <br>`;
+    }
     html += `
       <div class="info-heading">Power</div>
       <span class="info-label">Power Capacity (kW)</span>

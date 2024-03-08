@@ -5,6 +5,7 @@ import { InputManager } from './input.js';
 import { Presentation } from './scene/presentation.js';
 import { DisplayObject } from './scene/displayObject.js';
 import {Simulation} from "./sim/simulation.js";
+import {getTile} from "./sim/tileTools.js";
 
 /** 
  * Manager for the Three.js scene. Handles rendering of a `City` object
@@ -38,7 +39,7 @@ export class Game {
     if( this.selectedObject == null) {
       return null
     }
-    return this.simulation.getTile(this.selectedObject.x, this.selectedObject.y)
+    return getTile(this.simulation.world, this.selectedObject.x, this.selectedObject.y)
   }
   constructor() {
 
@@ -67,10 +68,10 @@ export class Game {
      */
     window.assetManager = new AssetManager(() => {
       window.ui.hideLoadingText();
-
-      this.simulation = new Simulation(16);
+      let size = 16;
+      this.simulation = new Simulation(size);
       this.simulation.subscribe(this.simulationUpdated.bind(this))
-      this.presentation = new Presentation(this.simulation);
+      this.presentation = new Presentation(size);
 
       this.initialize(this.presentation);
       this.start();
@@ -134,16 +135,16 @@ export class Game {
    * Starts the renderer
    */
   start() {
-    this.simulation.start()
     this.renderer.setAnimationLoop(this.draw.bind(this));
+    this.simulation.run()
   }
 
   /**
    * Stops the renderer
    */
   stop() {
+    this.simulation.halt()
     this.renderer.setAnimationLoop(null);
-    this.simulation.stop()
   }
 
   /**
@@ -152,7 +153,11 @@ export class Game {
   draw() {
     this.presentation.draw();
     this.updateFocusedObject();
-
+    if(window.ui.isPaused) {
+      this.simulation.halt()
+    } else {
+      this.simulation.run()
+    }
     if (this.inputManager.isLeftMouseDown) {
       this.useTool();
     } else if(this.inputManager.isRightMouseDown) {
@@ -162,8 +167,8 @@ export class Game {
     this.renderer.render(this.scene, this.cameraManager.camera);
   }
 
-  simulationUpdated() {
-    this.presentation.update(this.simulation)
+  simulationUpdated(world) {
+    this.presentation.update(world)
     window.ui.updateTitleBar(this);
     window.ui.updateInfoPanel(this.selectedTile);
   }
@@ -207,21 +212,23 @@ export class Game {
    * Sets the currently selected object and highlights it
    */
   updateSelectedObject() {
-    this.selectedObject?.setSelected(false);
-    this.selectedObject = this.focusedObject;
-    this.selectedObject?.setSelected(true);
+    if(this.selectedObject !== this.focusedObject) {
+      this.selectedObject?.setSelected(false);
+      this.selectedObject = this.focusedObject;
+      this.selectedObject?.setSelected(true);
+    }
   }
 
   /**
    * Sets the object that is currently highlighted
    */
   updateFocusedObject() {  
-    this.focusedObject?.setFocused(false);
     const newObject = this.#raycast();
     if (newObject !== this.focusedObject) {
+      this.focusedObject?.setFocused(false);
       this.focusedObject = newObject;
+      this.focusedObject?.setFocused(true);
     }
-    this.focusedObject?.setFocused(true);
   }
 
   /**
@@ -231,7 +238,7 @@ export class Game {
    * @returns {THREE.Mesh | null}
    */
   #raycast() {
-    var coords = {
+    let coords = {
       x: (this.inputManager.mouse.x / this.renderer.domElement.clientWidth) * 2 - 1,
       y: -(this.inputManager.mouse.y / this.renderer.domElement.clientHeight) * 2 + 1
     };

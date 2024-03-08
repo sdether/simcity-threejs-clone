@@ -1,35 +1,17 @@
-import { Simulation } from '../../simulation.js';
 import { Zone } from './zone.js';
-import { ResidentsModule } from '../modules/residents.js';
 import { BuildingType } from '../buildingType.js';
+import config from "../../../config.js";
 
 export class ResidentialZone extends Zone {
   /**
-   * @type {ResidentsModule}
+   * @type {Citizen[]}
    */
-  residents = new ResidentsModule(this);
+  residents = [];
+  maxResidents = 0;
 
-  constructor(x, y) {
-    super(x, y);
+  constructor(tile, type) {
+    super(tile, type)
     this.name = generateBuildingName();
-    this.type = BuildingType.residential;
-  }
-
-  /**
-   * Steps the state of the zone forward in time by one simulation step
-   * @param {Simulation} simulation
-   */
-  simulate(simulation) {
-    super.simulate(simulation);
-    this.residents.simulate(simulation);
-  }
-
-  /**
-   * Handles any clean up needed before a building is removed
-   */
-  dispose() {
-    this.residents.dispose();
-    super.dispose();
   }
 
   /**
@@ -38,7 +20,14 @@ export class ResidentialZone extends Zone {
    */
   toHTML() {
     let html = super.toHTML();
-    html += this.residents.toHTML();
+    html += `<div class="info-heading">Residents (${this.residents.length}/${this.maxResidents})</div>`;
+
+    html += '<ul class="info-citizen-list">';
+    for (const resident of this.residents) {
+      html += resident.toHTML();
+    }
+    html += '</ul>';
+
     return html;
   }
 }

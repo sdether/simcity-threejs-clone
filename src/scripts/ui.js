@@ -1,7 +1,7 @@
 import { Game } from './game';
-import { DisplayObject } from './scene/displayObject.js';
 import playIconUrl from '/icons/play-color.png';
 import pauseIconUrl from '/icons/pause-color.png';
+import {Tile} from "./model/tile.js";
 
 export class GameUI {
   /**
@@ -65,23 +65,23 @@ export class GameUI {
    * @param {Game} game 
    */
   updateTitleBar(game) {
-    document.getElementById('city-name').innerHTML = game.simulation.name;
-    document.getElementById('population-counter').innerHTML = game.simulation.population;
+    document.getElementById('city-name').innerHTML = game.simulation.world.name;
+    document.getElementById('population-counter').innerHTML = game.simulation.world.citizens.length.toString();
 
     const date = new Date('1/1/2023');
-    date.setDate(date.getDate() + game.simulation.simTime);
+    date.setDate(date.getDate() + game.simulation.world.simTime);
     document.getElementById('sim-time').innerHTML = date.toLocaleDateString();
   }
 
   /**
-   * Updates the info panel with the information in the object
-   * @param {DisplayObject} object
+   *
+   * @param {Tile} simTile
    */
-  updateInfoPanel(object) {
+  updateInfoPanel(simTile) {
     const infoElement = document.getElementById('info-panel')
-    if (object) {
+    if (simTile) {
       infoElement.style.visibility = 'visible';
-      infoElement.innerHTML = object.toHTML();
+      infoElement.innerHTML = simTile.toHTML();
     } else {
       infoElement.style.visibility = 'hidden';
       infoElement.innerHTML = '';
