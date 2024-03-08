@@ -134,7 +134,7 @@ export class Game {
    * Starts the renderer
    */
   start() {
-    this.simulation.start()
+    this.simulation.run()
     this.renderer.setAnimationLoop(this.draw.bind(this));
   }
 
@@ -143,7 +143,7 @@ export class Game {
    */
   stop() {
     this.renderer.setAnimationLoop(null);
-    this.simulation.stop()
+    this.simulation.halt()
   }
 
   /**
@@ -152,7 +152,11 @@ export class Game {
   draw() {
     this.presentation.draw();
     this.updateFocusedObject();
-
+    if(window.ui.isPaused) {
+      this.simulation.halt()
+    } else {
+      this.simulation.run()
+    }
     if (this.inputManager.isLeftMouseDown) {
       this.useTool();
     } else if(this.inputManager.isRightMouseDown) {
@@ -207,21 +211,23 @@ export class Game {
    * Sets the currently selected object and highlights it
    */
   updateSelectedObject() {
-    this.selectedObject?.setSelected(false);
-    this.selectedObject = this.focusedObject;
-    this.selectedObject?.setSelected(true);
+    if(this.selectedObject !== this.focusedObject) {
+      this.selectedObject?.setSelected(false);
+      this.selectedObject = this.focusedObject;
+      this.selectedObject?.setSelected(true);
+    }
   }
 
   /**
    * Sets the object that is currently highlighted
    */
   updateFocusedObject() {  
-    this.focusedObject?.setFocused(false);
     const newObject = this.#raycast();
     if (newObject !== this.focusedObject) {
+      this.focusedObject?.setFocused(false);
       this.focusedObject = newObject;
+      this.focusedObject?.setFocused(true);
     }
-    this.focusedObject?.setFocused(true);
   }
 
   /**

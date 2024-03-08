@@ -1,7 +1,7 @@
-import { Building } from '../building.js';
+import { BuildingManager } from '../buildingManager.js';
 import { BuildingType } from '../buildingType.js';
 
-export class PowerLine extends Building {
+export class PowerLine extends BuildingManager {
 
   constructor(x, y) {
     super(x, y);

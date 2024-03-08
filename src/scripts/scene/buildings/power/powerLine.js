@@ -12,10 +12,6 @@ const powerLineMaterial = new THREE.LineBasicMaterial({ color: 0 });
 
 export class PowerLine extends Building {
 
-  constructor(x, y) {
-    super(x, y);
-  }
-
   refreshView(simulation) {
     let simBuilding = simulation.getTile(this.x,this.y).building
     let group = new THREE.Group();

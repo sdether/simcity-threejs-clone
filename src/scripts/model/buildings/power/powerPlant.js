@@ -1,7 +1,7 @@
-import { BuildingManager } from '../buildingManager.js';
+import { Building } from '../building.js';
 import { BuildingType } from '../buildingType.js';
 
-export class PowerPlant extends BuildingManager {
+export class PowerPlant extends Building {
 
   /**
    * Available units of power (kW)
@@ -13,17 +13,12 @@ export class PowerPlant extends BuildingManager {
    */
   powerConsumed = 0;
 
-  constructor(x, y) {
-    super(x, y);
-    this.type = BuildingType.powerPlant;
-  }
-
   /**
    * Gets the amount of power available
    */
   get powerAvailable() {
     // Power plant must have road access in order to provide power
-    if (this.roadAccess.value) {
+    if (this.hasRoadAccess) {
       return this.powerCapacity - this.powerConsumed;
     } else {
       return 0;

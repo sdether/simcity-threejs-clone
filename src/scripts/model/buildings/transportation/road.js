@@ -1,9 +1,8 @@
-import { BuildingManager } from '../buildingManager.js';
+import { Building } from '../building.js';
 
-export class Road extends BuildingManager {
-  constructor(x, y) {
-    super(x, y);
-    this.type = 'road';
+export class Road extends Building {
+  constructor(tile, type) {
+    super(tile, type)
     this.name = 'Road';
     this.style = 'straight';
     this.roadAccess.enabled = false;

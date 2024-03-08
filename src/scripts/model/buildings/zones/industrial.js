@@ -1,45 +1,11 @@
-import { Simulation } from '../../simulation.js';
-import { JobsModule } from '../modules/jobs.js';
 import { BuildingType } from '../buildingType.js';
-import { Zone } from './zone.js';
+import {ZoneWithJobs} from "./zoneWithJobs.js";
 
-export class IndustrialZone extends Zone {
-  /**
-   * @type {JobsModule}
-   */
-  jobs = new JobsModule(this);
+export class IndustrialZone extends ZoneWithJobs {
 
-  constructor(x, y) {
-    super(x, y);
+  constructor(tile, type) {
+    super(tile, type)
     this.name = generateBusinessName();
-    this.type = BuildingType.industrial;
-  }
-
-  /**
-   * Steps the state of the zone forward in time by one simulation step
-   * @param {Simulation} simulation
-   */
-  simulate(simulation) {
-    super.simulate(simulation);
-    this.jobs.simulate(simulation);
-  }
-
-  /**
-   * Handles any clean up needed before a building is removed
-   */
-  dispose() {
-    this.jobs.dispose();
-    super.dispose();
-  }
-
-  /**
-   * Returns an HTML representation of this object
-   * @returns {string}
-   */
-  toHTML() {
-    let html = super.toHTML();
-    html += this.jobs.toHTML();
-    return html;
   }
 }
 

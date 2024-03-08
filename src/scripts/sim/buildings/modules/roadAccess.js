@@ -1,50 +1,31 @@
 import config from '../../../config.js';
-import {Simulation} from '../../simulation.js';
-import {Building} from '../building.js';
 import {SimModule} from './simModule.js';
+import {findTile} from "../../tileTools.js";
 
 /**
  * Logic for determining whether or not a tile has road access
  */
 export class RoadAccessModule extends SimModule {
-    /**
-     * @type {Building}
-     */
-    building;
-    /**
-     * @type {boolean}
-     */
-    enabled = true;
-    /**
-     * Whether or not the tile has access to a road
-     * @type {boolean}
-     */
-    value;
 
     /**
+     * @param {World} world
      * @param {Building} building
      */
-    constructor(building) {
-        super();
-        this.building = building;
-    }
+    simulate(world, building) {
+        const road = findTile(
+            world,
+            building.tile.x,
+            building.tile.y,
+            (tile) => {
+                return tile.building?.type === 'road'
+            },
+            config.modules.roadAccess.searchDistance);
 
-    /**
-     * Updates the state of this attribute
-     * @param {Simulation} simulation
-     */
-    simulate(simulation) {
-        if (!this.enabled) {
-            this.value = true;
-        } else {
-            const road = simulation.findTile(
-                this.building,
-                (tile) => {
-                    return tile.building?.type === 'road'
-                },
-                config.modules.roadAccess.searchDistance);
-
-            this.value = (road !== null);
+        let hasRoadAccess = (road !== null);
+        if (building.hasRoadAccess !== hasRoadAccess) {
+            building.hasRoadAccess = hasRoadAccess;
+            building.updated = true;
+            building.tile.updated = true;
         }
     }
 }

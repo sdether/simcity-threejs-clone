@@ -1,7 +1,12 @@
 import { Building } from './buildings/building.js';
-import { SimObject } from './simObject.js';
 
-export class Tile extends SimObject {
+let nextTileId = 0;
+
+export class Tile {
+  id = nextTileId++;
+  x = 0;
+  y = 0;
+
   /**
    * The type of terrain
    * @type {string}
@@ -11,39 +16,19 @@ export class Tile extends SimObject {
    * The building on this tile
    * @type {Building?}
    */
-  #building = null;
+  building = null;
 
-  constructor(x, y) {
-    super(x, y);
+  /**
+   * @type {boolean}
+   */
+  updated = true;
+
+  constructor(x, y, building) {
+    this.x = x;
+    this.y = y;
     this.name = `Tile-${this.x}-${this.y}`;
   }
 
-  /**
-   * @type {Building}
-   */
-  get building() {
-    return this.#building;
-  }
-
-  /**
-   * @type {Building} value
-   */
-  setBuilding(value) {
-    this.#building = value;
-  }
-
-  simulate(city) {
-    this.building?.simulate(city);
-  }
-
-  /**
-   * Gets the Manhattan distance between two tiles
-   * @param {Tile} tile
-   * @returns
-   */
-  distanceTo(tile) {
-    return Math.abs(this.x - tile.x) + Math.abs(this.y - tile.y);
-  }
 
   /**
    * 
@@ -66,4 +51,4 @@ export class Tile extends SimObject {
 
     return html;
   }
-};
+}

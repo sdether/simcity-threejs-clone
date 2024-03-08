@@ -14,8 +14,8 @@ export class Building extends DisplayObject {
    */
   #statusIcon = new THREE.Sprite();
 
-  constructor() {
-    super();
+  constructor(x = 0, y = 0) {
+    super(x, y);
     this.#statusIcon.visible = false;
     this.#statusIcon.material = new THREE.SpriteMaterial({ depthTest: false })
     this.#statusIcon.layers.set(1);

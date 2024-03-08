@@ -1,97 +1,75 @@
 import config from '../../../config.js';
-import { Citizen } from '../../citizen.js';
-import { Simulation } from '../../simulation.js';
-import { Zone as ResidentialZone } from '../../buildings/zones/zone.js';
-import { DevelopmentState } from './development.js';
 import { SimModule } from './simModule.js';
+import {ResidentialZone} from "../../../model/buildings/zones/residential.js";
+import {DevelopmentState} from "../../../model/buildings/zones/zone.js";
+import {Citizen} from "../../../model/citizen.js";
 
 /**
  * Logic for residents moving into and out of a building
  */
 export class ResidentsModule extends SimModule {
   /**
-   * @type {ResidentialZone}
-   */
-  #zone;
-
-  /**
-   * @type {Citizen[]}
-   */
-  #residents = [];
-
-  /**
-   * @param {ResidentialZone} zone 
-   */
-  constructor(zone) {
-    super();
-    this.#zone = zone;
-  }
-
-  /**
-   * Returns the number of residents
-   * @type {number}
-   */
-  get count() {
-    return this.#residents.length;
-  }
-
-  /**
    * Maximuim number of residents that can live in this building
    * @returns {number}
    */
   get maximum() {
-    return Math.pow(config.modules.residents.maxResidents, this.#zone.development.level);
+    return
   }
 
   /**
-   * @param {Simulation} simulation
+   * @param {World} world
+   * @param {ResidentialZone} zone
    */
-  simulate(simulation) {
+  simulate(world, zone) {
     // If building is abandoned, all residents are evicted and no more residents are allowed to move in.
-    if (this.#zone.development.state === DevelopmentState.abandoned && this.#residents.length > 0) {
-      this.#evictAll();
-    } else if (this.#zone.development.state === DevelopmentState.developed) {
+    if (zone.development.state === DevelopmentState.abandoned && zone.residents.length > 0) {
+      this.#evictAll(zone);
+      return;
+    }
+    let updated = false;
+    if (zone.development.state === DevelopmentState.developed) {
+      let maximum =  Math.pow(config.modules.residents.maxResidents, zone.development.level);
+      if( maximum !== zone.maxResidents) {
+        zone.maxResidents = maximum;
+        updated = true;
+      }
       // Move in new residents if there is room
-      if (this.#residents.length < this.maximum && Math.random() < config.modules.residents.residentMoveInChance) {
-        this.#residents.push(new Citizen(this.#zone));
+      if (zone.residents.length < maximum && Math.random() < config.modules.residents.residentMoveInChance) {
+        let resident = new Citizen(zone);
+        zone.residents.push(resident);
+        world.citizens.push(resident);
+        updated = true;
       }
     }
-
-    for (const resident of this.#residents) {
-      resident.simulate(simulation);
+    if(updated) {
+      zone.updated = zone.tile.updated = true;
     }
   }
 
   /**
    * Evicts all residents from the building
+   * @param {World} world
+   * @param {ResidentialZone} zone
    */
-  #evictAll() {
-    for (const resident of this.#residents) {
-      resident.dispose();
+  #evictAll(world, zone) {
+    if(zone.residents.length === 0) {
+      return;
     }
-    this.#residents = [];
+    for (const resident of zone.residents) {
+      resident.workplace = null;
+    }
+    zone.residents = [];
+    zone.updated = zone.tile.updated = true;
   }
 
   /**
    * Handles any clean up needed before a building is removed
    */
-  dispose() {
-    this.#evictAll();
-  }
-
   /**
-   * Returns an HTML representation of this object
-   * @returns {string}
+   * @param {World} world
+   * @param {ResidentialZone} zone
    */
-  toHTML() {
-    let html = `<div class="info-heading">Residents (${this.#residents.length}/${this.maximum})</div>`;
-
-    html += '<ul class="info-citizen-list">';
-    for (const resident of this.#residents) {
-      html += resident.toHTML();
-    }
-    html += '</ul>';
-
-    return html;
+  dispose(world, zone) {
+    this.#evictAll(world, zone);
   }
 }
