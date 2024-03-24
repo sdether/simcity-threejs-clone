@@ -27,9 +27,9 @@ export class Presentation extends THREE.Group {
      */
     tiles = [];
 
-    constructor(size) {
+    constructor(world) {
         super();
-        this.size = size;
+        this.size = world.size;
         this.add(this.debugMeshes);
         this.add(this.root);
 
@@ -43,17 +43,22 @@ export class Presentation extends THREE.Group {
             }
             this.tiles.push(column);
         }
+        this.update(world, true)
     }
 
     /**
      *
      * @param {World} world
+     * @param forceUpdate
      */
-    update(world) {
+    update(world, forceUpdate=false) {
         for (let x = 0; x < this.size; x++) {
             for (let y = 0; y < this.size; y++) {
                 let displayTile = this.tiles[x][y]
                 let simTile = getTile(world, x, y);
+                if(!forceUpdate && !simTile.updated) {
+                    continue;
+                }
                 if(simTile.building) {
                     if(!displayTile.building) {
                         displayTile.setBuilding(createBuilding(x, y, simTile.building.type));

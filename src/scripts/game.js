@@ -71,7 +71,7 @@ export class Game {
       let size = 16;
       this.simulation = new Simulation(size);
       this.simulation.subscribe(this.simulationUpdated.bind(this))
-      this.presentation = new Presentation(size);
+      this.presentation = new Presentation(this.simulation.world);
 
       this.initialize(this.presentation);
       this.start();
