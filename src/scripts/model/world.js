@@ -16,6 +16,8 @@ export class World {
 
     name = null;
 
+    stats = new Stats();
+
     /**
      * @type {Citizen[]}
      */
@@ -35,4 +37,14 @@ export class World {
         }
     }
 
+}
+
+export class Stats {
+    demand =  new Demand();
+}
+
+export class Demand {
+    residential = 0.0;
+    commercial = 0.0;
+    industrial = 0.0;
 }

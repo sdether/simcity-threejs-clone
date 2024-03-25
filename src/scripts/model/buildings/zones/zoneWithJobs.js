@@ -7,7 +7,10 @@ export class ZoneWithJobs extends Zone {
    */
   workers = [];
   maxWorkers = 0;
-  availableJobs = 0; // TODO: Should we allow getters in models instead of denormalizing data like this?
+
+  get availableJobs() {
+    return this.maxWorkers - this.workers.length
+  }
 
   /**
    * Returns an HTML representation of this object

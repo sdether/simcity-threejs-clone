@@ -9,6 +9,10 @@ export class ResidentialZone extends Zone {
   residents = [];
   maxResidents = 0;
 
+  get vacancies() {
+    return this.maxResidents - this.residents.length;
+  }
+
   constructor(tile, type) {
     super(tile, type)
     this.name = generateBuildingName();

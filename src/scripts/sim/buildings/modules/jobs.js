@@ -17,10 +17,8 @@ export class JobsModule extends SimModule {
             return
         }
         let maxWorkers = this.#getMaxWorkers(zone);
-        let availableJobs = maxWorkers - zone.workers.length;
-        if (maxWorkers !== zone.maxWorkers || availableJobs !== zone.availableJobs) {
+        if (maxWorkers !== zone.maxWorkers) {
             zone.maxWorkers = maxWorkers;
-            zone.availableJobs = availableJobs;
             zone.updated = zone.tile.updated = true;
         }
     }

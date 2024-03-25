@@ -16,7 +16,6 @@ export class CitizenManager {
                 citizen.workplace.workers = citizen.workplace.workers.filter(
                     c => c.id !== citizen.id
                 );
-                citizen.workplace.availableJobs++;
                 citizen.workplace = null;
 
             }
@@ -80,7 +79,6 @@ export class CitizenManager {
         if (tile) {
             // Employ the citizen at the building
             tile.building.workers.push(citizen);
-            tile.building.availableJobs--;
             citizen.workplace = tile.building;
         }
     }

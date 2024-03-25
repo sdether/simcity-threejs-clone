@@ -26,14 +26,6 @@ export class ResidentsModule extends SimModule {
         zone.maxResidents = maximum;
         updated = true;
       }
-      // Move in new residents if there is room
-      if (zone.residents.length < maximum && Math.random() < config.modules.residents.residentMoveInChance) {
-        let resident = new Citizen();
-        resident.residence = zone;
-        zone.residents.push(resident);
-        world.citizens.push(resident);
-        updated = true;
-      }
     }
     if(updated) {
       zone.updated = zone.tile.updated = true;

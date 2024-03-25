@@ -5,6 +5,8 @@ import {CitizenManager} from "./citizenManager.js";
 import {World} from "../model/world.js";
 import {Tile} from "../model/tile.js";
 import {getTile} from "./tileTools.js";
+import config from "../config.js";
+import {Citizen} from "../model/citizen.js";
 
 export const SimulationState = {
     Stopped: 'stopped',
@@ -65,14 +67,33 @@ export class Simulation {
 
     tick() {
         this.#cleanWorld();
+
         // Update services
         this.services.forEach((service) => service.simulate(this.world));
+
+        // Update tiles
+        let vacancies = [];
         for (let x = 0; x < this.world.size; x++) {
             for (let y = 0; y < this.world.size; y++) {
                 let currentTile = this.world.tiles[x][y];
                 this.buildingManager.simulate(this.world, currentTile);
+                if(currentTile.building?.vacancies) {
+                    vacancies.push(currentTile.building)
+                }
             }
         }
+
+        // Move in new residents if there is room
+        for (const vacancy of vacancies) {
+            if (Math.random() < config.modules.residents.residentMoveInChance) {
+                let resident = new Citizen();
+                resident.residence = vacancy;
+                vacancy.residents.push(resident);
+                this.world.citizens.push(resident);
+            }
+        }
+
+        // Update Citizens
         let citizens = this.world.citizens;
         this.world.citizens = [];
         for (const citizen of citizens) {
@@ -80,6 +101,7 @@ export class Simulation {
                 this.world.citizens.push(citizen)
             }
         }
+
         this.world.simTime++;
         this.notifySubscribers(this.world);
     }
