@@ -25,6 +25,7 @@ export class Zone extends Building {
    * @param {World} world
    */
   refreshView(world) {
+    super.refreshView(world);
     let simBuilding = getTile(world, this.x,this.y).building
     let modelName;
     switch (simBuilding.development.state) {

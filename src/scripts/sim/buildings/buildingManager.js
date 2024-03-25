@@ -100,12 +100,17 @@ export class BuildingManager {
         for (const module of modules) {
             module.simulate(world, building);
         }
+        let newStatus = building.status;
         if(building.power && building.power.supplied < building.power.required) {
-            building.status = BuildingStatus.NoPower;
+            newStatus = BuildingStatus.NoPower;
         } else if(!building.hasRoadAccess) {
-            building.status = BuildingStatus.NoRoadAccess;
+            newStatus = BuildingStatus.NoRoadAccess;
         } else {
-            building.status = BuildingStatus.Ok;
+            newStatus = BuildingStatus.Ok;
+        }
+        if(newStatus !== building.status) {
+            building.status = newStatus;
+            building.updated = building.tile.updated = true;
         }
     }
 }
