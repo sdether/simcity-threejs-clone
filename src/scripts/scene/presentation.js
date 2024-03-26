@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {createBuilding} from './buildings/buildingFactory.js';
-import {DisplayTile} from './displayTile.js';
+import {DisplayTile, ModelBuilding} from './displayTile.js';
 import {World} from "../model/world.js";
 import {getTile} from "../sim/tileTools.js";
 
@@ -34,16 +34,18 @@ export class Presentation extends THREE.Group {
         this.add(this.root);
 
         this.tiles = [];
+        let i = 0;
         for (let x = 0; x < this.size; x++) {
             const column = [];
             for (let y = 0; y < this.size; y++) {
                 const tile = new DisplayTile(x, y);
                 this.root.add(tile);
                 column.push(tile);
+                i++;
             }
             this.tiles.push(column);
         }
-        this.update(world, true)
+        this.update(world, true);
     }
 
     /**
@@ -60,22 +62,11 @@ export class Presentation extends THREE.Group {
                     continue;
                 }
                 if(simTile.building) {
-                    if(!displayTile.building) {
-                        displayTile.setBuilding(createBuilding(x, y, simTile.building.type));
-
-                        this.#refreshTileAndNeighbors(displayTile, world)
-                    } else {
-                        displayTile.refreshView(world);
-                    }
-                } else {
-                    if(displayTile.building) {
-                        displayTile.building.dispose();
-                        displayTile.setBuilding(null);
-                        this.#refreshTileAndNeighbors(displayTile, world)
-                    } else {
-                        displayTile.refreshView(world);
+                    if (!displayTile.building) {
+                        displayTile.setBuilding(new ModelBuilding());
                     }
                 }
+                displayTile.refreshView(world);
             }
         }
     }

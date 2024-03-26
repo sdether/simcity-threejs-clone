@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import {Building} from './buildings/building.js';
 import {DisplayObject} from './displayObject.js';
 import {World} from "../model/world.js";
+import models from "../assets/models.js";
+import {getTile} from "../sim/tileTools.js";
 
 export class DisplayTile extends DisplayObject {
     /**
@@ -61,4 +63,13 @@ export class DisplayTile extends DisplayObject {
             this.setMesh(mesh);
         }
     }
-};
+}
+
+export class ModelBuilding extends DisplayObject {
+    refreshView(world) {
+        let simBuilding = getTile(world, this.x, this.y).building
+        let mesh = window.assetManager.getModel(simBuilding.model_file, this);
+        this.setMesh(mesh);
+    }
+
+}

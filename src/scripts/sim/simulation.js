@@ -31,10 +31,16 @@ export class Simulation {
     constructor(size, name = 'My City') {
         this.world = new World(name, size)
         this.world.tiles = Array(size)
+        let i = -1;
         for (let x = 0; x < size; x++) {
             this.world.tiles[x] = Array(size)
             for (let y = 0; y < size; y++) {
-                this.world.tiles[x][y] = new Tile(x, y);
+                let j = null;
+                if (i % 2 === 0) {
+                    j = i / 2;
+                }
+                this.world.tiles[x][y] = new Tile(x, y, j);
+                i += 1;
             }
         }
 
@@ -66,6 +72,7 @@ export class Simulation {
     }
 
     tick() {
+        return;
         this.#cleanWorld();
 
         // Update services
@@ -73,13 +80,13 @@ export class Simulation {
 
         // Update tiles
         let vacancies = [];
-        let available_jobs =0;
+        let available_jobs = 0;
         let commercial_capacity = 0;
         for (let x = 0; x < this.world.size; x++) {
             for (let y = 0; y < this.world.size; y++) {
                 let currentTile = this.world.tiles[x][y];
                 this.buildingManager.simulate(this.world, currentTile);
-                if(currentTile.building?.vacancies) {
+                if (currentTile.building?.vacancies) {
                     vacancies.push(currentTile.building)
                 }
                 available_jobs += currentTile.building?.availableJobs || 0;
@@ -101,7 +108,7 @@ export class Simulation {
         let citizens = this.world.citizens;
         this.world.citizens = [];
         for (const citizen of citizens) {
-            if(CitizenManager.simulate(this.world, citizen)) {
+            if (CitizenManager.simulate(this.world, citizen)) {
                 this.world.citizens.push(citizen)
             }
         }
@@ -120,7 +127,7 @@ export class Simulation {
     placeBuilding(x, y, buildingType) {
         const buildingTile = getTile(this.world, x, y);
         this.buildingManager.create(buildingTile, buildingType);
-        if(buildingTile && buildingTile.updated) {
+        if (buildingTile && buildingTile.updated) {
             this.notifySubscribers(this.world);
         }
     }
@@ -133,7 +140,7 @@ export class Simulation {
     bulldoze(x, y) {
         const buildingTile = getTile(this.world, x, y);
         this.buildingManager.bulldoze(this.world, buildingTile);
-        if(buildingTile && buildingTile.updated) {
+        if (buildingTile && buildingTile.updated) {
             this.notifySubscribers(this.world);
         }
     }
@@ -146,7 +153,7 @@ export class Simulation {
             for (let y = 0; y < this.world.size; y++) {
                 let tile = this.world.tiles[x][y]
                 tile.updated = false;
-                if(tile.building) {
+                if (tile.building) {
                     tile.building.updated = false;
                 }
             }

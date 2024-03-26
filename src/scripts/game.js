@@ -68,7 +68,7 @@ export class Game {
      */
     window.assetManager = new AssetManager(() => {
       window.ui.hideLoadingText();
-      let size = 16;
+      let size = 11;
       this.simulation = new Simulation(size);
       this.simulation.subscribe(this.simulationUpdated.bind(this))
       this.presentation = new Presentation(this.simulation.world);
