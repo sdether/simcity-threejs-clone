@@ -12,13 +12,15 @@ import {ResidentsModule} from "./modules/residents.js";
 import {World} from "../../model/world.js";
 import {Tile} from "../../model/tile.js";
 import {BuildingStatus} from "../../model/buildings/buildingStatus.js";
+import {CommerceModule} from "./modules/commerce.js";
 
 export class BuildingManager {
 
-    developmentModule = new DevelopmentModule()
-    jobsModule = new JobsModule()
-    residentsModule = new ResidentsModule()
-    roadAccessModule = new RoadAccessModule()
+    developmentModule = new DevelopmentModule();
+    jobsModule = new JobsModule();
+    residentsModule = new ResidentsModule();
+    roadAccessModule = new RoadAccessModule();
+    commerceModule = new CommerceModule();
 
     create(tile, type) {
         if(!tile || tile.building) {
@@ -67,6 +69,7 @@ export class BuildingManager {
                 modules.push(this.roadAccessModule);
                 modules.push(this.developmentModule);
                 modules.push(this.jobsModule);
+                modules.push(this.commerceModule);
                 break;
             case BuildingType.industrial:
                 modules.push(this.roadAccessModule);

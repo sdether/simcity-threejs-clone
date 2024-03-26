@@ -73,6 +73,8 @@ export class Simulation {
 
         // Update tiles
         let vacancies = [];
+        let available_jobs =0;
+        let commercial_capacity = 0;
         for (let x = 0; x < this.world.size; x++) {
             for (let y = 0; y < this.world.size; y++) {
                 let currentTile = this.world.tiles[x][y];
@@ -80,6 +82,8 @@ export class Simulation {
                 if(currentTile.building?.vacancies) {
                     vacancies.push(currentTile.building)
                 }
+                available_jobs += currentTile.building?.availableJobs || 0;
+                commercial_capacity += currentTile.building?.capacity || 0;
             }
         }
 

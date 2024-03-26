@@ -1,12 +1,27 @@
-import { BuildingType } from '../buildingType.js';
 import {ZoneWithJobs} from "./zoneWithJobs.js";
 
+export class CommerceState {
+  capacity = 0;
+}
+
+
 export class CommercialZone extends ZoneWithJobs {
+
+  commerce = new CommerceState();
 
   constructor(tile, type) {
     super(tile, type)
     this.name = generateBusinessName();
   }
+
+  toHTML() {
+    return super.toHTML() +  `
+    <div class="info-heading">Details</div>
+    <span class="info-label">Customer Capacity </span>
+    <span class="info-value">${this.commerce.capacity}</span>
+    <br>`;
+  }
+
 }
 
 // Arrays of words for generating business names

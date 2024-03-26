@@ -1,4 +1,5 @@
 
+// TODO: Make power consumption variable by building level
 export class PowerConsumer {
     required = 0;
     supplied = 0;

@@ -16,14 +16,20 @@ export default {
       redevelopChance: 0.25,         
     },
     jobs: {
-      // Max # of workers at a building
-      maxWorkers: 2,       
+      // Max worker exponent per building level
+      maxWorkers: 2,
+      // Chance of landing a job
+      applicantChance: 0.5,
     },
     residents: {
-      // Max # of residents in a house
+      // Max resident exponent per building level
       maxResidents: 2,         
       // Chance for a resident to move in
       residentMoveInChance: 0.5,
+    },
+    commerce: {
+      // Customer handling capacity per building level
+      capacity: 10,
     },
     roadAccess: {
       // Max distance to search for a road when determining road access
