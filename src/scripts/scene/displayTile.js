@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {Building} from './buildings/building.js';
 import {DisplayObject} from './displayObject.js';
-import {World} from "../model/world.js";
+import {WorldView} from './worldView.js';
 
 export class DisplayTile extends DisplayObject {
     /**
@@ -26,39 +26,30 @@ export class DisplayTile extends DisplayObject {
         return this.#building;
     }
 
-    /**
-     * @type {Building} value
-     */
     setBuilding(value) {
-        // Remove and dispose resources for existing building
         if (this.#building) {
             this.#building.dispose();
             this.remove(this.#building);
         }
-
         this.#building = value;
-
-        // Add to scene graph
         if (value) {
             this.add(this.#building);
         }
     }
 
     /**
-     *
-     * @param {World} world
+     * @param {{ terrain: string, building: object|null }} tileView
+     * @param {WorldView} worldView
      */
-    refreshView(world) {
-        this.building?.refreshView(world);
+    refreshView(tileView, worldView) {
+        this.terrain = tileView.terrain;
+        this.building?.refreshView(tileView, worldView);
         if (this.building?.hideTerrain) {
             this.setMesh(null);
         } else {
-            /**
-             * @type {THREE.Mesh}
-             */
             const mesh = window.assetManager.getModel(this.terrain, this);
             mesh.name = this.terrain;
             this.setMesh(mesh);
         }
     }
-};
+}

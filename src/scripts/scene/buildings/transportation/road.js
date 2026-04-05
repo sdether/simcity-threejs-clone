@@ -1,7 +1,5 @@
 import {Building} from '../building.js';
 import {DEG2RAD} from 'three/src/math/MathUtils.js';
-import {World} from "../../../model/world.js";
-import {getMatchingNeighbors, getTile} from "../../../sim/tileTools.js";
 
 export class Road extends Building {
 
@@ -11,70 +9,61 @@ export class Road extends Building {
     }
 
     /**
-     * Updates the road mesh based on which adjacent tiles are roads as well
-     * @param {World} world
+     * Updates the road mesh based on which adjacent tiles are also roads.
+     * @param {{ terrain: string, building: object }} tileView
+     * @param {import('../../worldView.js').WorldView} worldView
      */
-    refreshView(world) {
-        let simBuilding = getTile(world, this.x, this.y).building
-
-        // Check which adjacent tiles are roads
-        let {top, right, bottom, left} = getMatchingNeighbors(world, this.x, this.y, simBuilding.type);
-
-        // Check all combinations
-        // Four-way intersection
-        if (top && bottom && left && right) {
-            simBuilding.style = 'four-way';
-            this.rotation.y = 0;
-            // T intersection
-        } else if (!top && bottom && left && right) { // bottom-left-right
-            simBuilding.style = 'three-way';
-            this.rotation.y = 0;
-        } else if (top && !bottom && left && right) { // top-left-right
-            simBuilding.style = 'three-way';
-            this.rotation.y = 180 * DEG2RAD;
-        } else if (top && bottom && !left && right) { // top-bottom-right
-            simBuilding.style = 'three-way';
-            this.rotation.y = 90 * DEG2RAD;
-        } else if (top && bottom && left && !right) { // top-bottom-left
-            simBuilding.style = 'three-way';
-            this.rotation.y = 270 * DEG2RAD;
-            // Corner
-        } else if (top && !bottom && left && !right) { // top-left
-            simBuilding.style = 'corner';
-            this.rotation.y = 180 * DEG2RAD;
-        } else if (top && !bottom && !left && right) { // top-right
-            simBuilding.style = 'corner';
-            this.rotation.y = 90 * DEG2RAD;
-        } else if (!top && bottom && left && !right) { // bottom-left
-            simBuilding.style = 'corner';
-            this.rotation.y = 270 * DEG2RAD;
-        } else if (!top && bottom && !left && right) { // bottom-right
-            simBuilding.style = 'corner';
-            this.rotation.y = 0;
-            // Straight
-        } else if (top && bottom && !left && !right) { // top-bottom
-            simBuilding.style = 'straight';
-            this.rotation.y = 0;
-        } else if (!top && !bottom && left && right) { // left-right
-            simBuilding.style = 'straight';
-            this.rotation.y = 90 * DEG2RAD;
-            // Dead end
-        } else if (top && !bottom && !left && !right) { // top
-            simBuilding.style = 'end';
-            this.rotation.y = 180 * DEG2RAD;
-        } else if (!top && bottom && !left && !right) { // bottom
-            simBuilding.style = 'end';
-            this.rotation.y = 0;
-        } else if (!top && !bottom && left && !right) { // left
-            simBuilding.style = 'end';
-            this.rotation.y = 270 * DEG2RAD;
-        } else if (!top && !bottom && !left && right) { // right
-            simBuilding.style = 'end';
-            this.rotation.y = 90 * DEG2RAD;
-        }
-
-        const mesh = window.assetManager.getModel(`road-${simBuilding.style}`, this);
-        this.setMesh(mesh);
+    refreshView(tileView, worldView) {
+        const {top, right, bottom, left} = worldView.getMatchingNeighbors(this.x, this.y, tileView.building.type);
+        this.refreshFromNeighbors(top, right, bottom, left);
     }
 
+    /**
+     * Updates the road mesh given pre-computed neighbor connectivity.
+     * Used by both the committed path (via refreshView) and the intent path
+     * (where connectivity is derived from display state, not the sim world).
+     * @param {boolean} top
+     * @param {boolean} right
+     * @param {boolean} bottom
+     * @param {boolean} left
+     */
+    refreshFromNeighbors(top, right, bottom, left) {
+        let style;
+        let rotation = 0;
+
+        if (top && bottom && left && right) {
+            style = 'four-way';
+        } else if (!top && bottom && left && right) {
+            style = 'three-way'; rotation = 0;
+        } else if (top && !bottom && left && right) {
+            style = 'three-way'; rotation = 180 * DEG2RAD;
+        } else if (top && bottom && !left && right) {
+            style = 'three-way'; rotation = 90 * DEG2RAD;
+        } else if (top && bottom && left && !right) {
+            style = 'three-way'; rotation = 270 * DEG2RAD;
+        } else if (top && !bottom && left && !right) {
+            style = 'corner'; rotation = 180 * DEG2RAD;
+        } else if (top && !bottom && !left && right) {
+            style = 'corner'; rotation = 90 * DEG2RAD;
+        } else if (!top && bottom && left && !right) {
+            style = 'corner'; rotation = 270 * DEG2RAD;
+        } else if (!top && bottom && !left && right) {
+            style = 'corner'; rotation = 0;
+        } else if (top && bottom && !left && !right) {
+            style = 'straight'; rotation = 0;
+        } else if (!top && !bottom && left && right) {
+            style = 'straight'; rotation = 90 * DEG2RAD;
+        } else if (top && !bottom && !left && !right) {
+            style = 'end'; rotation = 180 * DEG2RAD;
+        } else if (!top && bottom && !left && !right) {
+            style = 'end'; rotation = 0;
+        } else if (!top && !bottom && left && !right) {
+            style = 'end'; rotation = 270 * DEG2RAD;
+        } else {
+            style = 'end'; rotation = 90 * DEG2RAD;
+        }
+
+        this.rotation.y = rotation;
+        this.setMesh(window.assetManager.getModel(`road-${style}`, this));
+    }
 }

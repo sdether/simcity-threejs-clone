@@ -75,6 +75,10 @@ export class DisplayObject extends THREE.Object3D {
     }
   }
 
+  setIntent(value) {
+    this.#setMeshEmission(value ? 0x003366 : 0);
+  }
+
   /**
    * Sets the emission color of the mesh 
    * @param {number} color 

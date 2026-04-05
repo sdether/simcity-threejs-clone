@@ -1,7 +1,8 @@
 import config from "../../../config.js";
 import {CommercialZone} from "../../../model/buildings/zones/commercial.js";
+import {SimModule} from "./simModule.js";
 
-export class CommerceModule {
+export class CommerceModule extends SimModule {
     /**
      * @param {World} world
      * @param {CommercialZone} building

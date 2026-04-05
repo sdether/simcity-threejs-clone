@@ -7,6 +7,7 @@ import {Tile} from "../model/tile.js";
 import {getTile} from "./tileTools.js";
 import config from "../config.js";
 import {Citizen} from "../model/citizen.js";
+import {worldSnapshotEvent, tileChangedEvent, statsChangedEvent} from "./worldEvents.js";
 
 export const SimulationState = {
     Stopped: 'stopped',
@@ -55,14 +56,28 @@ export class Simulation {
         this.state = SimulationState.Stopped;
     }
 
+    /**
+     * Register a subscriber. Immediately fires a WorldSnapshot event so the
+     * subscriber can initialise from current state without querying the world.
+     * @param {(events: object[]) => void} subscriber
+     */
     subscribe(subscriber) {
         this.subscribers.push(subscriber);
+        subscriber([worldSnapshotEvent(this.world)]);
     }
 
-    notifySubscribers(world) {
+    notifySubscribers(events) {
         for (const subscriber of this.subscribers) {
-            subscriber(world);
+            subscriber(events);
         }
+    }
+
+    /**
+     * Marks every tile as updated and notifies subscribers, forcing a full
+     * world refresh on the presentation side.
+     */
+    requestFullRefresh() {
+        this.notifySubscribers([worldSnapshotEvent(this.world)]);
     }
 
     tick() {
@@ -107,7 +122,18 @@ export class Simulation {
         }
 
         this.world.simTime++;
-        this.notifySubscribers(this.world);
+
+        const events = [];
+        for (let x = 0; x < this.world.size; x++) {
+            for (let y = 0; y < this.world.size; y++) {
+                const tile = this.world.tiles[x][y];
+                if (tile.updated) {
+                    events.push(tileChangedEvent(tile));
+                }
+            }
+        }
+        events.push(statsChangedEvent(this.world));
+        this.notifySubscribers(events);
     }
 
     /**
@@ -120,8 +146,8 @@ export class Simulation {
     placeBuilding(x, y, buildingType) {
         const buildingTile = getTile(this.world, x, y);
         this.buildingManager.create(buildingTile, buildingType);
-        if(buildingTile && buildingTile.updated) {
-            this.notifySubscribers(this.world);
+        if (buildingTile?.updated) {
+            this.notifySubscribers([tileChangedEvent(buildingTile)]);
         }
     }
 
@@ -133,8 +159,8 @@ export class Simulation {
     bulldoze(x, y) {
         const buildingTile = getTile(this.world, x, y);
         this.buildingManager.bulldoze(this.world, buildingTile);
-        if(buildingTile && buildingTile.updated) {
-            this.notifySubscribers(this.world);
+        if (buildingTile?.updated) {
+            this.notifySubscribers([tileChangedEvent(buildingTile)]);
         }
     }
 

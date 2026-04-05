@@ -6,25 +6,35 @@ import {Zone} from "./zone/zone.js";
 import {BuildingType} from "../../model/buildings/buildingType.js";
 
 /**
- * Creates a new building object
- * @param {number} x The x-coordinate of the building
- * @param {number} y The y-coordinate of the building
- * @param {BuildingType} type The building type
- * @returns {Building} A new building object
+ * Creates a new display building object for the given type.
+ * Sets `buildingType` so the presentation layer can identify building types
+ * without querying the sim world.
+ * @param {number} x
+ * @param {number} y
+ * @param {BuildingType} type
+ * @returns {Building}
  */
 export function createBuilding(x, y, type) {
+    let building;
     switch (type) {
         case BuildingType.residential:
         case BuildingType.commercial:
         case BuildingType.industrial:
-            return new Zone();
+            building = new Zone();
+            break;
         case BuildingType.road:
-            return new Road();
+            building = new Road();
+            break;
         case BuildingType.powerPlant:
-            return new PowerPlant();
+            building = new PowerPlant();
+            break;
         case BuildingType.powerLine:
-            return new PowerLine();
+            building = new PowerLine();
+            break;
         default:
             console.error(`${type} is not a recognized building type.`);
+            return;
     }
+    building.buildingType = type;
+    return building;
 }

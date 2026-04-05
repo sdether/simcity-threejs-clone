@@ -1,16 +1,19 @@
 import {Building} from '../building.js';
-import {getTile} from "../../../sim/tileTools.js";
-import {World} from "../../../model/world.js";
 
 export class PowerPlant extends Building {
 
+    refreshForIntent() {
+        super.refreshForIntent();
+        this.setMesh(window.assetManager.getModel('power-plant', this));
+    }
+
     /**
-     *
-     * @param {World} world
+     * @param {{ terrain: string, building: object }} tileView
+     * @param {import('../../worldView.js').WorldView} worldView
      */
-    refreshView(world) {
-        let simBuilding = getTile(world, this.x, this.y).building
-        let mesh = window.assetManager.getModel(simBuilding.type, this);
+    refreshView(tileView, worldView) {
+        super.refreshView(tileView, worldView);
+        const mesh = window.assetManager.getModel(tileView.building.type, this);
         this.setMesh(mesh);
     }
 }

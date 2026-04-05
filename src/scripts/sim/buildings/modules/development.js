@@ -32,8 +32,9 @@ export class DevelopmentModule extends SimModule {
             zone.development.state = DevelopmentState.abandoned;
           }
         } else {
-          if (this.level < this.maxLevel && Math.random() < config.modules.development.levelUpChance) {
-            this.level++;
+          if (zone.development.level < zone.development.maxLevel && Math.random() < config.modules.development.levelUpChance) {
+            zone.development.level++;
+            zone.updated = zone.tile.updated = true;
           }
         }
         break;

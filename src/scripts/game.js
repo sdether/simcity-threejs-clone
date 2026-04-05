@@ -5,85 +5,75 @@ import { InputManager } from './input.js';
 import { Presentation } from './scene/presentation.js';
 import { DisplayObject } from './scene/displayObject.js';
 import {Simulation} from "./sim/simulation.js";
-import {getTile} from "./sim/tileTools.js";
 
-/** 
- * Manager for the Three.js scene. Handles rendering of a `City` object
+/**
+ * Orchestrates simulation, presentation, input and rendering.
  */
 export class Game {
-  /**
-   * @type {Presentation}
-   */
+  /** @type {Presentation} */
   presentation;
-  /**
-   * @type {Simulation}
-   */
+  /** @type {Simulation} */
   simulation;
   /**
-   * Object that currently hs focus
+   * Object that currently has focus (hover).
    * @type {DisplayObject | null}
    */
   focusedObject = null;
-  /**
-   * Class for managing user input
-   * @type {InputManager}
-   */
+  /** @type {InputManager} */
   inputManager;
   /**
-   * Object that is currently selected
+   * Object that is currently selected.
    * @type {DisplayObject | null}
    */
   selectedObject = null;
 
-  get selectedTile() {
-    if( this.selectedObject == null) {
-      return null
-    }
-    return getTile(this.simulation.world, this.selectedObject.x, this.selectedObject.y)
-  }
-  constructor() {
+  #prevLeftMouseDown = false;
+  /** Maps "x,y" → toolId for tiles painted during the current mouse-down drag */
+  #intentTiles = new Map();
 
-    this.renderer = new THREE.WebGLRenderer({ 
-      antialias: true
-    });
+  /**
+   * Returns the presentation-side tile data for the selected tile,
+   * without querying the simulation world.
+   */
+  get selectedTileView() {
+    if (this.selectedObject == null) return null;
+    return this.presentation.worldView.getTile(this.selectedObject.x, this.selectedObject.y);
+  }
+
+  constructor() {
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.scene = new THREE.Scene();
 
     this.inputManager = new InputManager(window.ui.gameWindow);
     this.cameraManager = new CameraManager(window.ui.gameWindow);
 
-    // Configure the renderer
     this.renderer.setSize(window.ui.gameWindow.clientWidth, window.ui.gameWindow.clientHeight);
     this.renderer.setClearColor(0x000000, 0);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
-    // Add the renderer to the DOM
     window.ui.gameWindow.appendChild(this.renderer.domElement);
 
-    // Variables for object selection
     this.raycaster = new THREE.Raycaster();
 
-    /**
-     * Global instance of the asset manager
-     */
     window.assetManager = new AssetManager(() => {
       window.ui.hideLoadingText();
-      let size = 16;
+
+      const size = 16;
       this.simulation = new Simulation(size);
-      this.simulation.subscribe(this.simulationUpdated.bind(this))
-      this.presentation = new Presentation(this.simulation.world);
+      this.presentation = new Presentation();
+
+      // subscribe fires a WorldSnapshot immediately, initialising the presentation
+      this.simulation.subscribe(this.#simulationUpdated.bind(this));
 
       this.initialize(this.presentation);
       this.start();
-
     });
 
     window.addEventListener('resize', this.onResize.bind(this), false);
+    window.addEventListener('keyup', this.#onKeyUp.bind(this), false);
   }
 
-  /**
-   * Initalizes the scene, clearing all existing assets
-   */
   initialize(presentation) {
     this.scene.clear();
     this.scene.add(presentation);
@@ -91,31 +81,27 @@ export class Game {
     this.#setupGrid(presentation);
   }
 
-  #setupGrid(city) {
-    // Add the grid
-    const gridMaterial = new THREE.MeshBasicMaterial({ 
+  #setupGrid(presentation) {
+    const gridMaterial = new THREE.MeshBasicMaterial({
       color: 0x000000,
       map: window.assetManager.textures['grid'],
       transparent: true,
       opacity: 0.2
     });
-    gridMaterial.map.repeat = new THREE.Vector2(city.size, city.size);
-    gridMaterial.map.wrapS = city.size;
-    gridMaterial.map.wrapT = city.size;
+    gridMaterial.map.repeat = new THREE.Vector2(presentation.size, presentation.size);
+    gridMaterial.map.wrapS = presentation.size;
+    gridMaterial.map.wrapT = presentation.size;
 
     const grid = new THREE.Mesh(
-      new THREE.BoxGeometry(city.size, 0.1, city.size),
+      new THREE.BoxGeometry(presentation.size, 0.1, presentation.size),
       gridMaterial
     );
-    grid.position.set(city.size / 2 - 0.5, -0.04, city.size / 2 - 0.5);
+    grid.position.set(presentation.size / 2 - 0.5, -0.04, presentation.size / 2 - 0.5);
     this.scene.add(grid);
   }
 
-  /**
-   * Setup the lights for the scene
-   */
   #setupLights() {
-    const sun = new THREE.DirectionalLight(0xffffff, 2)
+    const sun = new THREE.DirectionalLight(0xffffff, 2);
     sun.position.set(-10, 20, 0);
     sun.castShadow = true;
     sun.shadow.camera.left = -20;
@@ -130,99 +116,107 @@ export class Game {
     this.scene.add(sun);
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
   }
-  
-  /**
-   * Starts the renderer
-   */
+
   start() {
     this.renderer.setAnimationLoop(this.draw.bind(this));
-    this.simulation.run()
+    this.simulation.run();
   }
 
-  /**
-   * Stops the renderer
-   */
   stop() {
-    this.simulation.halt()
+    this.simulation.halt();
     this.renderer.setAnimationLoop(null);
   }
 
-  /**
-   * Render the contents of the scene
-   */
   draw() {
     this.presentation.draw();
     this.updateFocusedObject();
-    if(window.ui.isPaused) {
-      this.simulation.halt()
+
+    if (window.ui.isPaused) {
+      this.simulation.halt();
     } else {
-      this.simulation.run()
-    }
-    if (this.inputManager.isLeftMouseDown) {
-      this.useTool();
-    } else if(this.inputManager.isRightMouseDown) {
-      this.maybeBulldoze();
+      this.simulation.run();
     }
 
+    const isLeft = this.inputManager.isLeftMouseDown;
+
+    if (isLeft) {
+      this.#updateIntent();
+    } else if (!isLeft && this.#prevLeftMouseDown) {
+      this.#commitIntent();
+    }
+    this.#prevLeftMouseDown = isLeft;
+
+    if (this.inputManager.isRightMouseDown) {
+      this.maybeBulldoze();
+    }
     this.renderer.render(this.scene, this.cameraManager.camera);
   }
 
-  simulationUpdated(world) {
-    this.presentation.update(world)
-    window.ui.updateTitleBar(this);
-    window.ui.updateInfoPanel(this.selectedTile);
+  #simulationUpdated(events) {
+    this.presentation.applyEvents(events);
+    const { worldView } = this.presentation;
+    window.ui.updateTitleBar(worldView.name, worldView.stats);
+    window.ui.updateInfoPanel(this.selectedTileView);
   }
 
+  /**
+   * Intent phase: called every frame while left mouse is held.
+   * Speculatively renders buildings without sending simulation commands.
+   */
+  #updateIntent() {
+    if (!this.focusedObject) return;
+    const { x, y } = this.focusedObject;
+    const toolId = window.ui.activeToolId;
+
+    if (toolId === 'select') {
+      this.updateSelectedObject();
+      window.ui.updateInfoPanel(this.selectedTileView);
+      return;
+    }
+
+    if (toolId === 'bulldoze') {
+      console.log('[CMD] bulldoze', { x, y });
+      this.simulation.bulldoze(x, y);
+      return;
+    }
+
+    const key = `${x},${y}`;
+    if (this.#intentTiles.has(key)) return;
+
+    this.#intentTiles.set(key, toolId);
+    this.presentation.showIntent(x, y, toolId);
+  }
 
   /**
-   * Bulldoze tile under cursor
+   * Commit phase: called once on mouse-up.
+   * Sends all accumulated intent tiles as simulation commands.
    */
+  #commitIntent() {
+    for (const [key, toolId] of this.#intentTiles) {
+      const [x, y] = key.split(',').map(Number);
+      console.log('[CMD] placeBuilding', { x, y, type: toolId });
+      this.simulation.placeBuilding(x, y, toolId);
+    }
+    this.#intentTiles.clear();
+  }
+
   maybeBulldoze() {
     if (this.focusedObject) {
       const { x, y } = this.focusedObject;
+      console.log('[CMD] bulldoze', { x, y });
       this.simulation.bulldoze(x, y);
     }
   }
 
-  /**
-   * Uses the currently active tool
-   */
-  useTool() {
-    switch (window.ui.activeToolId) {
-      case 'select':
-        this.updateSelectedObject();
-        window.ui.updateInfoPanel(this.selectedTile);
-        break;
-      case 'bulldoze':
-        if (this.focusedObject) {
-          const { x, y } = this.focusedObject;
-          this.simulation.bulldoze(x, y);
-        }
-        break;
-      default:
-        if (this.focusedObject) {
-          const { x, y } = this.focusedObject;
-          this.simulation.placeBuilding(x, y, window.ui.activeToolId);
-        }
-        break;
-    }
-  }
-  
-  /**
-   * Sets the currently selected object and highlights it
-   */
   updateSelectedObject() {
-    if(this.selectedObject !== this.focusedObject) {
+    if (this.selectedObject !== this.focusedObject) {
       this.selectedObject?.setSelected(false);
       this.selectedObject = this.focusedObject;
       this.selectedObject?.setSelected(true);
     }
   }
 
-  /**
-   * Sets the object that is currently highlighted
-   */
-  updateFocusedObject() {  
+  updateFocusedObject() {
     const newObject = this.#raycast();
     if (newObject !== this.focusedObject) {
       this.focusedObject?.setFocused(false);
@@ -231,40 +225,28 @@ export class Game {
     }
   }
 
-  /**
-   * Gets the mesh currently under the mouse cursor. If there is nothing under
-   * the mouse cursor, returns null
-   * @param {MouseEvent} event Mouse event
-   * @returns {THREE.Mesh | null}
-   */
   #raycast() {
-    let coords = {
+    const coords = {
       x: (this.inputManager.mouse.x / this.renderer.domElement.clientWidth) * 2 - 1,
-      y: -(this.inputManager.mouse.y / this.renderer.domElement.clientHeight) * 2 + 1
+      y: -(this.inputManager.mouse.y / this.renderer.domElement.clientHeight) * 2 + 1,
     };
-
     this.raycaster.setFromCamera(coords, this.cameraManager.camera);
+    const intersections = this.raycaster.intersectObjects(this.presentation.root.children, true);
+    return intersections.length > 0 ? intersections[0].object.userData : null;
+  }
 
-    let intersections = this.raycaster.intersectObjects(this.presentation.root.children, true);
-    if (intersections.length > 0) {
-      // The SimObject attached to the mesh is stored in the user data
-      const selectedObject = intersections[0].object.userData;
-      return selectedObject;
-    } else {
-      return null;
+  #onKeyUp(event) {
+    if (event.key === 'r') {
+      this.simulation.requestFullRefresh();
     }
   }
 
-  /**
-   * Resizes the renderer to fit the current game window
-   */
   onResize() {
     this.cameraManager.resize(window.ui.gameWindow);
     this.renderer.setSize(window.ui.gameWindow.clientWidth, window.ui.gameWindow.clientHeight);
   }
 }
 
-// Create a new game when the window is loaded
 window.onload = () => {
   window.game = new Game();
-}
+};
