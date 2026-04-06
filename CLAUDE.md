@@ -130,3 +130,10 @@ src/
 - Root is `./src`, public dir is `./src/public`, output is `./dist`
 - Base path is `/simcity-threejs-clone/` for GitHub Pages deployment
 - ES modules throughout (`"type": "module"` in package.json)
+
+## Debugging Notes
+
+- If we end up with left over server we can kill it with
+```
+! powershell -Command "Stop-Process -Id (Get-NetTCPConnection -LocalPort 3001).OwningProcess -Force"
+```

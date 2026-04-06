@@ -4,7 +4,7 @@ import { CameraManager } from './camera.js';
 import { InputManager } from './input.js';
 import { Presentation } from './scene/presentation.js';
 import { DisplayObject } from './scene/displayObject.js';
-import {Simulation} from "./sim/simulation.js";
+import { SimClient } from './simClient.js';
 
 /**
  * Orchestrates simulation, presentation, input and rendering.
@@ -12,8 +12,8 @@ import {Simulation} from "./sim/simulation.js";
 export class Game {
   /** @type {Presentation} */
   presentation;
-  /** @type {Simulation} */
-  simulation;
+  /** @type {SimClient} */
+  simClient;
   /**
    * Object that currently has focus (hover).
    * @type {DisplayObject | null}
@@ -28,6 +28,8 @@ export class Game {
   selectedObject = null;
 
   #prevLeftMouseDown = false;
+  #wasPaused = false;
+  #grid = null;
   /** Maps "x,y" → toolId for tiles painted during the current mouse-down drag */
   #intentTiles = new Map();
 
@@ -59,12 +61,10 @@ export class Game {
     window.assetManager = new AssetManager(() => {
       window.ui.hideLoadingText();
 
-      const size = 16;
-      this.simulation = new Simulation(size);
+      this.simClient = new SimClient();
       this.presentation = new Presentation();
 
-      // subscribe fires a WorldSnapshot immediately, initialising the presentation
-      this.simulation.subscribe(this.#simulationUpdated.bind(this));
+      this.simClient.connect(this.#simulationUpdated.bind(this));
 
       this.initialize(this.presentation);
       this.start();
@@ -82,6 +82,14 @@ export class Game {
   }
 
   #setupGrid(presentation) {
+    if (presentation.size === 0) return;
+
+    if (this.#grid) {
+      this.scene.remove(this.#grid);
+      this.#grid.geometry.dispose();
+      this.#grid.material.dispose();
+    }
+
     const gridMaterial = new THREE.MeshBasicMaterial({
       color: 0x000000,
       map: window.assetManager.textures['grid'],
@@ -92,12 +100,12 @@ export class Game {
     gridMaterial.map.wrapS = presentation.size;
     gridMaterial.map.wrapT = presentation.size;
 
-    const grid = new THREE.Mesh(
+    this.#grid = new THREE.Mesh(
       new THREE.BoxGeometry(presentation.size, 0.1, presentation.size),
       gridMaterial
     );
-    grid.position.set(presentation.size / 2 - 0.5, -0.04, presentation.size / 2 - 0.5);
-    this.scene.add(grid);
+    this.#grid.position.set(presentation.size / 2 - 0.5, -0.04, presentation.size / 2 - 0.5);
+    this.scene.add(this.#grid);
   }
 
   #setupLights() {
@@ -119,22 +127,29 @@ export class Game {
 
   start() {
     this.renderer.setAnimationLoop(this.draw.bind(this));
-    this.simulation.run();
   }
 
   stop() {
-    this.simulation.halt();
+    this.simClient.disconnect();
     this.renderer.setAnimationLoop(null);
+  }
+
+  reset() {
+    this.selectedObject?.setSelected(false);
+    this.selectedObject = null;
+    this.focusedObject?.setFocused(false);
+    this.focusedObject = null;
+    this.#intentTiles.clear();
+    this.simClient.reset();
   }
 
   draw() {
     this.presentation.draw();
     this.updateFocusedObject();
 
-    if (window.ui.isPaused) {
-      this.simulation.halt();
-    } else {
-      this.simulation.run();
+    if (window.ui.isPaused !== this.#wasPaused) {
+      this.#wasPaused = window.ui.isPaused;
+      window.ui.isPaused ? this.simClient.pause() : this.simClient.resume();
     }
 
     const isLeft = this.inputManager.isLeftMouseDown;
@@ -154,6 +169,9 @@ export class Game {
 
   #simulationUpdated(events) {
     this.presentation.applyEvents(events);
+    if (events.some(e => e.type === 'WorldSnapshot')) {
+      this.#setupGrid(this.presentation);
+    }
     const { worldView } = this.presentation;
     window.ui.updateTitleBar(worldView.name, worldView.stats);
     window.ui.updateInfoPanel(this.selectedTileView);
@@ -176,7 +194,7 @@ export class Game {
 
     if (toolId === 'bulldoze') {
       console.log('[CMD] bulldoze', { x, y });
-      this.simulation.bulldoze(x, y);
+      this.simClient.bulldoze(x, y);
       return;
     }
 
@@ -195,7 +213,7 @@ export class Game {
     for (const [key, toolId] of this.#intentTiles) {
       const [x, y] = key.split(',').map(Number);
       console.log('[CMD] placeBuilding', { x, y, type: toolId });
-      this.simulation.placeBuilding(x, y, toolId);
+      this.simClient.placeBuilding(x, y, toolId);
     }
     this.#intentTiles.clear();
   }
@@ -204,7 +222,7 @@ export class Game {
     if (this.focusedObject) {
       const { x, y } = this.focusedObject;
       console.log('[CMD] bulldoze', { x, y });
-      this.simulation.bulldoze(x, y);
+      this.simClient.bulldoze(x, y);
     }
   }
 
@@ -237,7 +255,7 @@ export class Game {
 
   #onKeyUp(event) {
     if (event.key === 'r') {
-      this.simulation.requestFullRefresh();
+      this.simClient.requestRefresh();
     }
   }
 

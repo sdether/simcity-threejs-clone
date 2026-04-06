@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(timeout 5 node server/index.js)",
+      "Bash(timeout 4 node server/index.js)",
+      "Bash(taskkill:*)",
+      "Bash(cmd:*)",
+      "Bash(netstat -ano)",
+      "Bash(powershell:*)"
+    ]
+  }
+}

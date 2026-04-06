@@ -16,8 +16,8 @@ export class CitizenManager {
                 citizen.workplace.workers = citizen.workplace.workers.filter(
                     c => c.id !== citizen.id
                 );
+                citizen.workplace.updated = citizen.workplace.tile.updated = true;
                 citizen.workplace = null;
-
             }
             return false;
         }
@@ -37,7 +37,7 @@ export class CitizenManager {
                 // Transitions
                 if (citizen.workplace) {
                     citizen.state = CitizenState.employed;
-                    citizen.updated = true;
+                    citizen.residence.updated = citizen.residence.tile.updated = true;
                 }
 
                 break;
@@ -47,7 +47,7 @@ export class CitizenManager {
                 // Transitions
                 if (!citizen.workplace) {
                     citizen.state = CitizenState.unemployed;
-                    citizen.updated = true;
+                    citizen.residence.updated = citizen.residence.tile.updated = true;
                 }
 
                 break;
@@ -80,6 +80,7 @@ export class CitizenManager {
             // Employ the citizen at the building
             tile.building.workers.push(citizen);
             citizen.workplace = tile.building;
+            tile.building.updated = tile.updated = true;
         }
     }
 }

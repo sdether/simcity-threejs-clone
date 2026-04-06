@@ -1,4 +1,4 @@
-import {RoadAccessModule} from './modules/roadAccess';
+import {RoadAccessModule} from './modules/roadAccess.js';
 import {BuildingType} from "../../model/buildings/buildingType.js";
 import {ResidentialZone} from "../../model/buildings/zones/residential.js";
 import {CommercialZone} from "../../model/buildings/zones/commercial.js";
