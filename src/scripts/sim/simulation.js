@@ -109,6 +109,7 @@ export class Simulation {
                 resident.residence = vacancy;
                 vacancy.residents.push(resident);
                 this.world.citizens.push(resident);
+                vacancy.updated = vacancy.tile.updated = true;
             }
         }
 
