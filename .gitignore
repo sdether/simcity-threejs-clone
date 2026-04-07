@@ -1,24 +1,102 @@
+#######################################
+# OS files
+#######################################
+
+.DS_Store
+Thumbs.db
+
+#######################################
+# Editor / IDE
+#######################################
+
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.claude
+
+#######################################
+# Environment variables / secrets
+#######################################
+
+.env
+.env.*
+!.env.example
+
+#######################################
 # Logs
-logs
+#######################################
+
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+#######################################
+# Node / JavaScript
+#######################################
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+node_modules/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+#######################################
+# Package managers
+#######################################
+
+.pnpm-store/
+.npm/
+.yarn/
+.yarn-cache/
+
+#######################################
+# .NET
+#######################################
+
+bin/
+obj/
+
+*.rsuser
+*.userprefs
+
+#######################################
+# .NET publish output
+#######################################
+
+publish/
+out/
+
+#######################################
+# Rider / ReSharper
+#######################################
+
+_ReSharper*/
+*.DotSettings.user
+
+#######################################
+# Test output
+#######################################
+
+TestResults/
+
+#######################################
+# Database / local dev artifacts
+#######################################
+
+*.db
+*.sqlite
+*.sqlite3
+
+#######################################
+# Temporary files
+#######################################
+
+*.tmp
+*.temp
+*.swp
+*.cache

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import {createBuilding} from './buildings/buildingFactory.js';
 import {DisplayTile} from './displayTile.js';
 import {WorldView} from './worldView.js';
-import {EventType} from '../sim/worldEvents.js';
-import {BuildingType} from '../model/buildings/buildingType.js';
+import {EventType} from '../../../shared/eventTypes.js';
+import {BuildingType} from '../../../shared/buildingTypes.js';
 
 export class Presentation extends THREE.Group {
     /**

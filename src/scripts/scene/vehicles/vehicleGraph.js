@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { VehicleGraphTile } from './vehicleGraphTile.js';
 import { VehicleGraphHelper } from './vehicleGraphHelper.js';
-import config from '../../config.js';
+import config from '../../../../shared/config.js';
 import { Vehicle } from './vehicle.js';
 import { Road } from '../buildings/transportation/road.js';
 

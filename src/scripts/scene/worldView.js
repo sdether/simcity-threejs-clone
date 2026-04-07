@@ -1,4 +1,4 @@
-import { EventType } from '../sim/worldEvents.js';
+import { EventType } from '../../../shared/eventTypes.js';
 
 /**
  * Presentation-side read model of the world. Updated exclusively by applying

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { VehicleGraphNode } from './vehicleGraphNode.js';
-import config from '../../config.js';
+import config from '../../../../shared/config.js';
 import { DisplayObject } from '../displayObject.js';
 import models from '../../assets/models.js';
 

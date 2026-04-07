@@ -1,0 +1,1 @@
+export { BuildingType } from '../../../shared/buildingTypes.js';

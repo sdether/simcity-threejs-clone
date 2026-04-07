@@ -3,7 +3,7 @@ import {Building} from './building.js';
 import {PowerPlant} from './power/powerPlant.js';
 import {PowerLine} from './power/powerLine.js';
 import {Zone} from "./zone/zone.js";
-import {BuildingType} from "../../model/buildings/buildingType.js";
+import {BuildingType} from "../../../../shared/buildingTypes.js";
 
 /**
  * Creates a new display building object for the given type.

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {DisplayObject} from '../displayObject.js';
-import {BuildingStatus} from '../../model/buildings/buildingStatus.js';
+import {BuildingStatus} from '../../../../shared/buildingStatus.js';
 
 export class Building extends DisplayObject {
     /**

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { DEG2RAD } from 'three/src/math/MathUtils.js';
 import { Building } from '../building.js';
-import {DevelopmentState} from '../../../model/buildings/zones/zone.js';
+import {DevelopmentState} from '../../../../../shared/developmentState.js';
 
 /**
  * Represents a zoned building such as residential, commercial or industrial.
