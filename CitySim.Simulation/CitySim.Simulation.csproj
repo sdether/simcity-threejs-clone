@@ -19,4 +19,16 @@
     <Compile Remove="TypedArch\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="TypedArch\**" />
+  </ItemGroup>
+
+  <Target Name="ValidateArchetypes" AfterTargets="Build">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Simulation.Tests\Simulation.Tests.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration)" />
+    <Exec Command="dotnet test &quot;$(MSBuildThisFileDirectory)..\Simulation.Tests\Simulation.Tests.csproj&quot; --no-build --configuration $(Configuration) --logger &quot;console;verbosity=minimal&quot;"
+          ConsoleToMSBuild="true" />
+  </Target>
+
 </Project>
