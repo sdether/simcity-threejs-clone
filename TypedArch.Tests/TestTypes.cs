@@ -3,11 +3,6 @@ using TypedArch;
 
 namespace TypedArch.Tests;
 
-// ── Test enum ─────────────────────────────────────────────────────────────────
-
-public enum TestEnum { Primary, Secondary, Tertiary }
-public enum OtherEnum { X }
-
 // ── Test components ───────────────────────────────────────────────────────────
 
 public struct CompA;
@@ -15,95 +10,105 @@ public struct CompB;
 public struct CompC;
 public struct CompD; // intentionally not declared on any archetype
 
+// ── Test archetypes ───────────────────────────────────────────────────────────
+
+public interface IPrimary : IArcheType
+{
+    CompA  CompA  { get; }
+    CompB? CompB  { get; }
+}
+
+public interface ISecondary : IArcheType
+{
+    CompB CompB { get; }
+    CompC CompC { get; }
+}
+
+public interface ITertiary : IPrimary
+{
+    CompC CompC { get; }
+}
+
+public interface IUnregistered : IArcheType
+{
+    CompA CompA { get; }
+}
+
 // ── Standard world fixture ────────────────────────────────────────────────────
-//
-//  Primary:   Requires<CompA>, Allows<CompB>
-//  Secondary: Requires<CompB>, Requires<CompC>
-//  Tertiary:  Subclass of Primary — inherits CompA (required), CompB (optional),
-//             adds CompC (required)
 
 public static class TestWorld
 {
-    public static TypedWorld<TestEnum> Build() =>
-        WorldBuilder.For<TestEnum>()
-            .RegisterArchetype(TestEnum.Primary)
-                .Requires<CompA>()
-                .Allows<CompB>()
-            .BuildArchetype()
-            .RegisterArchetype(TestEnum.Secondary)
-                .Requires<CompB>()
-                .Requires<CompC>()
-            .BuildArchetype()
-            .Subclass(TestEnum.Primary, TestEnum.Tertiary)
-                .Requires<CompC>()
-            .BuildArchetype()
-            .BuildWorld();
+    public static TypedWorld Build() =>
+        new TypedWorldBuilder()
+            .RegisterArcheType<IPrimary>()
+            .RegisterArcheType<ISecondary>()
+            .RegisterArcheType<ITertiary>()
+            .Build();
 }
 
 // ── Test systems ──────────────────────────────────────────────────────────────
 
-public class ValidSystem : TypedSystem
+public class ValidSystem : ISystem
 {
-    public static readonly QueryDescription Query =
+    private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompB>();
 
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class UnsatisfiableSystem : TypedSystem
+public class CompAOnlySystem : ISystem
 {
-    // CompA and CompC together never appear on the same archetype.
-    // Primary has CompA but not CompC as required; Secondary has CompC but not CompA.
-    // Wait - Tertiary has CompA (inherited) and CompC (required). So this IS satisfiable.
-    // Use CompD which appears on no archetype.
-    public static readonly QueryDescription Query =
+    private static readonly QueryDescription _query =
+        new QueryDescription().WithAll<CompA>();
+
+    public void Run(TypedWorld world) { }
+}
+
+public class UnsatisfiableSystem : ISystem
+{
+    // CompD is on no archetype — will never match.
+    private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompD>();
 
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class ValidEntitySystem : TypedEntitySystem<TestEnum>
+public class ValidBoundSystem : ISystem
 {
-    public static readonly QueryDescription Query =
-        new QueryDescription().WithAll<CompA>();
+    private static readonly TypedQueryDescription<IPrimary> _query =
+        TypedQueryDescription.Create<IPrimary>().WithAll<CompA>();
 
-    public ValidEntitySystem() : base(TestEnum.Primary) { }
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class WrongEnumEntitySystem : TypedEntitySystem<OtherEnum>
+public class UndeclaredComponentBoundSystem : ISystem
 {
-    public static readonly QueryDescription Query =
-        new QueryDescription().WithAll<CompA>();
+    // CompD is not declared on IPrimary.
+    private static readonly TypedQueryDescription<IPrimary> _query =
+        TypedQueryDescription.Create<IPrimary>().WithAll<CompD>();
 
-    public WrongEnumEntitySystem() : base(OtherEnum.X) { }
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class UndeclaredComponentEntitySystem : TypedEntitySystem<TestEnum>
+public class ExcludesRequiredBoundSystem : ISystem
 {
-    // CompD is not declared on Primary.
-    public static readonly QueryDescription Query =
-        new QueryDescription().WithAll<CompD>();
+    // CompA is Required on IPrimary — excluding it means the query can never match.
+    private static readonly TypedQueryDescription<IPrimary> _query =
+        TypedQueryDescription.Create<IPrimary>().WithAll<CompB>().WithNone<CompA>();
 
-    public UndeclaredComponentEntitySystem() : base(TestEnum.Primary) { }
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class CompAOnlySystem : TypedSystem
+public class UnregisteredArchetypeSystem : ISystem
 {
-    public static readonly QueryDescription Query =
-        new QueryDescription().WithAll<CompA>();
+    private static readonly TypedQueryDescription<IUnregistered> _query =
+        TypedQueryDescription.Create<IUnregistered>().WithAll<CompA>();
 
-    public override void Run(World world) { }
+    public void Run(TypedWorld world) { }
 }
 
-public class ExcludesRequiredEntitySystem : TypedEntitySystem<TestEnum>
+public class WritesBSystem : ISystem
 {
-    // CompA is Required on Primary — excluding it means the query can never match.
-    public static readonly QueryDescription Query =
-        new QueryDescription().WithAll<CompB>().WithNone<CompA>();
-
-    public ExcludesRequiredEntitySystem() : base(TestEnum.Primary) { }
-    public override void Run(World world) { }
+    // Intentionally no field — used to test a system with no queries.
+    public void Run(TypedWorld world) { }
 }

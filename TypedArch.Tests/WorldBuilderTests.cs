@@ -6,59 +6,55 @@ namespace TypedArch.Tests;
 public class WorldBuilderTests
 {
     [Test]
-    public void BuildWorld_Succeeds_WhenAllArchetypesRegistered()
+    public void Build_Succeeds_WithRegisteredArchetypes()
     {
         Assert.DoesNotThrow(() => TestWorld.Build().Dispose());
     }
 
     [Test]
-    public void BuildWorld_Throws_WhenArchetypeMissing()
-    {
-        var ex = Assert.Throws<ArchetypeValidationException>(() =>
-            WorldBuilder.For<TestEnum>()
-                .RegisterArchetype(TestEnum.Primary).Requires<CompA>().BuildArchetype()
-                // Secondary and Tertiary not registered
-                .BuildWorld());
-
-        Assert.That(ex!.Message, Does.Contain("Secondary").Or.Contain("Tertiary"));
-    }
-
-    [Test]
-    public void BuildWorld_Throws_OnDuplicateArchetype()
+    public void Build_Throws_OnDuplicateArchetype()
     {
         Assert.Throws<ArchetypeValidationException>(() =>
-            WorldBuilder.For<TestEnum>()
-                .RegisterArchetype(TestEnum.Primary).BuildArchetype()
-                .RegisterArchetype(TestEnum.Primary).BuildArchetype() // duplicate
-                .RegisterArchetype(TestEnum.Secondary).BuildArchetype()
-                .RegisterArchetype(TestEnum.Tertiary).BuildArchetype()
-                .BuildWorld());
+            new TypedWorldBuilder()
+                .RegisterArcheType<IPrimary>()
+                .RegisterArcheType<IPrimary>()
+                .Build());
     }
 
     [Test]
-    public void Subclass_InheritsParentComponents()
+    public void Build_Throws_WhenNonInterfaceRegistered()
+    {
+        Assert.Throws<ArchetypeValidationException>(() =>
+            new TypedWorldBuilder()
+                .RegisterArcheType<ConcreteArchetype>()
+                .Build());
+    }
+
+    [Test]
+    public void Archetype_InheritsParentComponents()
     {
         using var world = TestWorld.Build();
 
-        // Tertiary is a subclass of Primary: it should require CompA (inherited) + CompC (own)
-        // and allow CompB (inherited optional).
-        // Valid creation: CompA + CompC (both required), CompB optional included.
+        // ITertiary extends IPrimary: inherits CompA (required) + CompB (optional),
+        // adds CompC (required).
         Assert.DoesNotThrow(() =>
         {
-            var entity = world.Create(TestEnum.Tertiary, new CompA(), new CompB(), new CompC());
+            var entity = world.Create<ITertiary>(new CompA(), new CompB(), new CompC());
             world.Destroy(entity);
         });
     }
 
     [Test]
-    public void Subclass_Throws_WhenParentNotRegistered()
+    public void Archetype_InheritedRequiredComponent_IsEnforced()
     {
-        Assert.Throws<ArchetypeValidationException>(() =>
-            WorldBuilder.For<TestEnum>()
-                .Subclass(TestEnum.Primary, TestEnum.Tertiary) // Primary not yet registered
-                .BuildArchetype()
-                .RegisterArchetype(TestEnum.Primary).BuildArchetype()
-                .RegisterArchetype(TestEnum.Secondary).BuildArchetype()
-                .BuildWorld());
+        using var world = TestWorld.Build();
+
+        // ITertiary inherits CompA as required — omitting it should throw.
+        var ex = Assert.Throws<ArchetypeValidationException>(() =>
+            world.Create<ITertiary>(new CompC()));
+
+        Assert.That(ex!.Message, Does.Contain("CompA"));
     }
 }
+
+public class ConcreteArchetype : IArcheType { }

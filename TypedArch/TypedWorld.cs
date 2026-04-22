@@ -5,15 +5,15 @@ using EntityExtensions = Arch.Core.Extensions.EntityExtensions;
 
 namespace TypedArch;
 
-public class TypedWorld<TEnum> : IDisposable where TEnum : struct, Enum
+public class TypedWorld : IDisposable
 {
     /// <summary>Raw Arch world — use this for queries.</summary>
     public World World { get; } = World.Create();
 
-    private readonly Dictionary<int, ArchetypeDefinition<TEnum>> _definitions;
-    private readonly IReadOnlyList<TypedSystem>                   _systems;
+    private readonly Dictionary<Type, ArchetypeDefinition> _byType;
+    private readonly List<ArchetypeDefinition>             _byIndex;
+    private readonly IReadOnlyList<ISystem>                _systems;
 
-    // Cached MethodInfo for EntityExtensions.Add<T>(ref Entity, in T).
     private static readonly MethodInfo s_addMethod =
         typeof(EntityExtensions)
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
@@ -22,24 +22,27 @@ public class TypedWorld<TEnum> : IDisposable where TEnum : struct, Enum
                 && m.GetGenericArguments().Length == 1
                 && m.GetParameters().Length == 2);
 
-    internal TypedWorld(Dictionary<int, ArchetypeDefinition<TEnum>> definitions, IReadOnlyList<TypedSystem> systems)
+    internal TypedWorld(
+        Dictionary<Type, ArchetypeDefinition> byType,
+        List<ArchetypeDefinition>             byIndex,
+        IReadOnlyList<ISystem>                systems)
     {
-        _definitions = definitions;
-        _systems     = systems;
+        _byType  = byType;
+        _byIndex = byIndex;
+        _systems = systems;
     }
 
     // ── Entity creation ───────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Creates an entity for the given archetype.
-    /// Throws if any required component is missing or an undeclared component is included.
-    /// </summary>
-    public Entity Create(TEnum archetype, params object[] components)
+    public Entity Create<TArcheType>(params object[] components) where TArcheType : IArcheType
     {
-        var def = GetDefinition(archetype);
+        if (!_byType.TryGetValue(typeof(TArcheType), out var def))
+            throw new ArchetypeValidationException(
+                $"Archetype '{typeof(TArcheType).Name}' is not registered.");
+
         ValidateComponents(def, components);
 
-        var entity = World.Create(new ArchetypeRef(Convert.ToInt32(archetype)));
+        var entity = World.Create(new ArchetypeRef(def.Index));
         foreach (var component in components)
             AddBoxed(entity, component);
 
@@ -50,73 +53,71 @@ public class TypedWorld<TEnum> : IDisposable where TEnum : struct, Enum
 
     public void Add<T>(Entity entity, T component) where T : struct
     {
+#if DEBUG
         var def = GetDefinitionForEntity(entity);
         if (!def.All.Contains(typeof(T)))
             throw new ArchetypeValidationException(
-                $"Component '{typeof(T).Name}' is not permitted on archetype '{def.Id}'.");
+                $"Component '{typeof(T).Name}' is not permitted on archetype '{def.ArchetypeType.Name}'.");
+#endif
         entity.Add(component);
     }
 
     public void Add<T>(Entity entity) where T : struct
     {
+#if DEBUG
         var def = GetDefinitionForEntity(entity);
         if (!def.All.Contains(typeof(T)))
             throw new ArchetypeValidationException(
-                $"Component '{typeof(T).Name}' is not permitted on archetype '{def.Id}'.");
+                $"Component '{typeof(T).Name}' is not permitted on archetype '{def.ArchetypeType.Name}'.");
+#endif
         entity.Add<T>();
     }
 
     public void Remove<T>(Entity entity) where T : struct
     {
+#if DEBUG
         var def = GetDefinitionForEntity(entity);
         if (def.Required.Contains(typeof(T)))
             throw new ArchetypeValidationException(
-                $"Cannot remove required component '{typeof(T).Name}' from archetype '{def.Id}'.");
+                $"Cannot remove required component '{typeof(T).Name}' from archetype '{def.ArchetypeType.Name}'.");
+#endif
         entity.Remove<T>();
     }
 
     // ── Other world operations ────────────────────────────────────────────────
 
-    public TEnum GetArchetype(Entity entity) =>
-        (TEnum)(object)entity.Get<ArchetypeRef>().ArchetypeId;
+    public Type GetArchetype(Entity entity) =>
+        _byIndex[entity.Get<ArchetypeRef>().Index].ArchetypeType;
 
     public void Destroy(Entity entity) => World.Destroy(entity);
 
-    /// <summary>Runs static analysis against the registered systems.</summary>
     public ValidationReport Validate() =>
-        WorldValidator<TEnum>.Validate(_definitions, _systems);
+        WorldValidator.Validate(_byType, _systems);
 
-    /// <summary>Runs static analysis against the provided systems (useful in tests).</summary>
-    public ValidationReport Validate(IReadOnlyList<TypedSystem> systems) =>
-        WorldValidator<TEnum>.Validate(_definitions, systems);
+    public ValidationReport Validate(IReadOnlyList<ISystem> systems) =>
+        WorldValidator.Validate(_byType, systems);
 
     public void Dispose() => World.Dispose();
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private ArchetypeDefinition<TEnum> GetDefinition(TEnum archetype) =>
-        _definitions[Convert.ToInt32(archetype)];
+    private ArchetypeDefinition GetDefinitionForEntity(Entity entity) =>
+        _byIndex[entity.Get<ArchetypeRef>().Index];
 
-    private ArchetypeDefinition<TEnum> GetDefinitionForEntity(Entity entity)
-    {
-        var id = entity.Get<ArchetypeRef>().ArchetypeId;
-        return _definitions[id];
-    }
-
-    private static void ValidateComponents(ArchetypeDefinition<TEnum> def, object[] components)
+    private static void ValidateComponents(ArchetypeDefinition def, object[] components)
     {
         var provided = components.Select(c => c.GetType()).ToHashSet();
 
         var missing = def.Required.Except(provided).ToList();
         if (missing.Count > 0)
             throw new ArchetypeValidationException(
-                $"Archetype '{def.Id}' is missing required component(s): " +
+                $"Archetype '{def.ArchetypeType.Name}' is missing required component(s): " +
                 string.Join(", ", missing.Select(t => t.Name)));
 
         var extra = provided.Except(def.All).ToList();
         if (extra.Count > 0)
             throw new ArchetypeValidationException(
-                $"Component(s) not permitted on archetype '{def.Id}': " +
+                $"Component(s) not permitted on archetype '{def.ArchetypeType.Name}': " +
                 string.Join(", ", extra.Select(t => t.Name)));
     }
 

@@ -23,6 +23,10 @@
     <Compile Remove="TypedArch\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TypedArch\TypedArch.csproj" />
+  </ItemGroup>
+
   <Target Name="ValidateArchetypes" AfterTargets="Build">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\Simulation.Tests\Simulation.Tests.csproj"
              Targets="Build"
