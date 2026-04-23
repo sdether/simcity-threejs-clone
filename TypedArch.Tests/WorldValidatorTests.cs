@@ -6,7 +6,7 @@ namespace TypedArch.Tests;
 [TestFixture]
 public class WorldValidatorTests
 {
-    private TypedWorld _world = null!;
+    private TypedWorld<ITestArchetypes, ITestSystems> _world = null!;
 
     [SetUp]    public void SetUp()    => _world = TestWorld.Build();
     [TearDown] public void TearDown() => _world.Dispose();

@@ -14,8 +14,8 @@ public struct CompD; // intentionally not declared on any archetype
 
 public interface IPrimary : IArcheType
 {
-    CompA  CompA  { get; }
-    CompB? CompB  { get; }
+    CompA  CompA { get; }
+    CompB? CompB { get; }
 }
 
 public interface ISecondary : IArcheType
@@ -34,16 +34,22 @@ public interface IUnregistered : IArcheType
     CompA CompA { get; }
 }
 
+// ── Manifests ─────────────────────────────────────────────────────────────────
+
+public interface ITestArchetypes
+{
+    IPrimary   Primary   { get; }
+    ISecondary Secondary { get; }
+    ITertiary  Tertiary  { get; }
+}
+
+public interface ITestSystems { }
+
 // ── Standard world fixture ────────────────────────────────────────────────────
 
 public static class TestWorld
 {
-    public static TypedWorld Build() =>
-        new TypedWorldBuilder()
-            .RegisterArcheType<IPrimary>()
-            .RegisterArcheType<ISecondary>()
-            .RegisterArcheType<ITertiary>()
-            .Build();
+    public static TypedWorld<ITestArchetypes, ITestSystems> Build() => new();
 }
 
 // ── Test systems ──────────────────────────────────────────────────────────────
@@ -53,7 +59,7 @@ public class ValidSystem : ISystem
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompB>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class CompAOnlySystem : ISystem
@@ -61,16 +67,15 @@ public class CompAOnlySystem : ISystem
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class UnsatisfiableSystem : ISystem
 {
-    // CompD is on no archetype — will never match.
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompD>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class ValidBoundSystem : ISystem
@@ -78,25 +83,23 @@ public class ValidBoundSystem : ISystem
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompA>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class UndeclaredComponentBoundSystem : ISystem
 {
-    // CompD is not declared on IPrimary.
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompD>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class ExcludesRequiredBoundSystem : ISystem
 {
-    // CompA is Required on IPrimary — excluding it means the query can never match.
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompB>().WithNone<CompA>();
 
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }
 
 public class UnregisteredArchetypeSystem : ISystem
@@ -104,11 +107,5 @@ public class UnregisteredArchetypeSystem : ISystem
     private static readonly TypedQueryDescription<IUnregistered> _query =
         TypedQueryDescription.Create<IUnregistered>().WithAll<CompA>();
 
-    public void Run(TypedWorld world) { }
-}
-
-public class WritesBSystem : ISystem
-{
-    // Intentionally no field — used to test a system with no queries.
-    public void Run(TypedWorld world) { }
+    public void Run(World world) { }
 }

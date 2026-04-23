@@ -15,18 +15,33 @@ public interface ICitizen : IArcheType
 
 public class JobSystem : ISystem
 {
-    private static QueryDescription _query = new QueryDescription().WithAll<CitizenInfo, Job>();
-    public QueryDescription Query => _query;
-    public IReadOnlySet<Type> Writes => [typeof(Job)];
-    public void Run(TypedWorld world)
+    private static readonly TypedQueryDescription<ICitizen> _query = TypedQueryDescription
+        .Create<ICitizen>()
+        .WithAll<CitizenInfo, Job>();
+    
+    public void Run(World world)
     {
-        world.World.Query(in _query, (Entity entity, ref CitizenInfo citizenInfo, ref Job job) =>
+        world.Query(in _query.Inner, (Entity entity, ref CitizenInfo citizenInfo, ref Job job) =>
         {
 
         });
     }
 }
 
-public class CitizenJobSystem : JobSystem, ISystem<ICitizen>
+
+public interface IArcheTypes
 {
+    ICitizen Citizen { get; }
+}
+
+public interface ISystems
+{
+    JobSystem JobSystem { get; }
+}
+
+public static class Env {
+    public static void Run()
+    {
+        var typedWorld = new TypedWorld<IArcheTypes, ISystems>();
+    }
 }

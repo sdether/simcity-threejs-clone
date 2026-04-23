@@ -1,3 +1,5 @@
+using Arch.Core;
+
 namespace TypedArch;
 
 /// <summary>
@@ -6,5 +8,5 @@ namespace TypedArch;
 /// </summary>
 public interface ISystem
 {
-    void Run(TypedWorld world);
+    void Run(World world);
 }

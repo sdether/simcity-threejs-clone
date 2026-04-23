@@ -21,18 +21,17 @@ internal static class WorldValidator
         BindingFlags.Instance | BindingFlags.Static |
         BindingFlags.Public   | BindingFlags.NonPublic;
 
-    public static ValidationReport Validate(
+public static ValidationReport Validate(
         Dictionary<Type, ArchetypeDefinition> definitions,
         IReadOnlyList<ISystem> systems)
     {
-        var errors   = new List<string>();
-        var warnings = new List<string>();
-
+        var errors          = new List<string>();
+        var warnings        = new List<string>();
         var allQueriedTypes = new HashSet<Type>();
 
         foreach (var system in systems)
         {
-            foreach (var (query, archetypeType) in GetQueries(system))
+            foreach (var (query, fieldBinding) in GetQueries(system))
             {
                 var withAll  = SignatureHelper.Types(query.All);
                 var withAny  = SignatureHelper.Types(query.Any);
@@ -42,7 +41,7 @@ internal static class WorldValidator
                 allQueriedTypes.UnionWith(withAny);
                 allQueriedTypes.UnionWith(withNone);
 
-                // General satisfiability: at least one archetype can match this query.
+                // General satisfiability.
                 var satisfiable = definitions.Values.Any(def =>
                     withAll.IsSubsetOf(def.All) &&
                     (withAny.Count == 0 || withAny.Overlaps(def.All)) &&
@@ -54,8 +53,7 @@ internal static class WorldValidator
                         $"{DescribeQuery(withAll, withAny, withNone)} " +
                         $"that no archetype can satisfy — it will never match.");
 
-                // Archetype conformance: typed queries must only reference components
-                // declared on their bound archetype.
+                var archetypeType = fieldBinding;
                 if (archetypeType is null) continue;
 
                 if (!definitions.TryGetValue(archetypeType, out var boundDef))
@@ -82,7 +80,6 @@ internal static class WorldValidator
             }
         }
 
-        // Warn about optional components on archetypes that no query references.
         foreach (var def in definitions.Values)
             foreach (var type in def.Optional.Where(t => !allQueriedTypes.Contains(t)))
                 warnings.Add(
@@ -94,7 +91,7 @@ internal static class WorldValidator
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    /// Scans all fields on the system for QueryDescription and TypedQueryDescription&lt;T&gt;.
+    /// Scans fields for QueryDescription and TypedQueryDescription&lt;T&gt;.
     /// Returns (query, archetypeType) — archetypeType is null for plain QueryDescription fields.
     private static IEnumerable<(QueryDescription query, Type? archetypeType)> GetQueries(ISystem system)
     {
@@ -104,13 +101,9 @@ internal static class WorldValidator
             if (value is null) continue;
 
             if (value is QueryDescription qd)
-            {
                 yield return (qd, null);
-            }
             else if (value is ITypedQueryDescription tqd)
-            {
                 yield return (tqd.Inner, tqd.ArchetypeType);
-            }
         }
     }
 

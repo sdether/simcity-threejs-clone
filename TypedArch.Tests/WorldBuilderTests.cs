@@ -15,19 +15,14 @@ public class WorldBuilderTests
     public void Build_Throws_OnDuplicateArchetype()
     {
         Assert.Throws<ArchetypeValidationException>(() =>
-            new TypedWorldBuilder()
-                .RegisterArcheType<IPrimary>()
-                .RegisterArcheType<IPrimary>()
-                .Build());
+            new TypedWorld<IDuplicateArchetypes, ITestSystems>());
     }
 
     [Test]
     public void Build_Throws_WhenNonInterfaceRegistered()
     {
         Assert.Throws<ArchetypeValidationException>(() =>
-            new TypedWorldBuilder()
-                .RegisterArcheType<ConcreteArchetype>()
-                .Build());
+            new TypedWorld<IConcreteArchetypeManifest, ITestSystems>());
     }
 
     [Test]
@@ -35,8 +30,6 @@ public class WorldBuilderTests
     {
         using var world = TestWorld.Build();
 
-        // ITertiary extends IPrimary: inherits CompA (required) + CompB (optional),
-        // adds CompC (required).
         Assert.DoesNotThrow(() =>
         {
             var entity = world.Create<ITertiary>(new CompA(), new CompB(), new CompC());
@@ -49,12 +42,24 @@ public class WorldBuilderTests
     {
         using var world = TestWorld.Build();
 
-        // ITertiary inherits CompA as required — omitting it should throw.
         var ex = Assert.Throws<ArchetypeValidationException>(() =>
-            world.Create<ITertiary>(new CompC()));
+            world.Create<ITertiary>(new CompC())); // missing CompA
 
         Assert.That(ex!.Message, Does.Contain("CompA"));
     }
+}
+
+// ── Manifests used only in failure-path tests ─────────────────────────────────
+
+public interface IDuplicateArchetypes
+{
+    IPrimary First  { get; }
+    IPrimary Second { get; } // duplicate
+}
+
+public interface IConcreteArchetypeManifest
+{
+    ConcreteArchetype Bad { get; } // not an interface
 }
 
 public class ConcreteArchetype : IArcheType { }

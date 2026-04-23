@@ -5,7 +5,7 @@ using EntityExtensions = Arch.Core.Extensions.EntityExtensions;
 
 namespace TypedArch;
 
-public class TypedWorld : IDisposable
+public class TypedWorld<TArchetypes, TSystems> : IDisposable
 {
     /// <summary>Raw Arch world — use this for queries.</summary>
     public World World { get; } = World.Create();
@@ -22,14 +22,10 @@ public class TypedWorld : IDisposable
                 && m.GetGenericArguments().Length == 1
                 && m.GetParameters().Length == 2);
 
-    internal TypedWorld(
-        Dictionary<Type, ArchetypeDefinition> byType,
-        List<ArchetypeDefinition>             byIndex,
-        IReadOnlyList<ISystem>                systems)
+    public TypedWorld()
     {
-        _byType  = byType;
-        _byIndex = byIndex;
-        _systems = systems;
+        (_byType, _byIndex) = RegisterArchetypes();
+        _systems             = RegisterSystems();
     }
 
     // ── Entity creation ───────────────────────────────────────────────────────
@@ -98,6 +94,50 @@ public class TypedWorld : IDisposable
         WorldValidator.Validate(_byType, systems);
 
     public void Dispose() => World.Dispose();
+
+    // ── Registration ──────────────────────────────────────────────────────────
+
+    private static (Dictionary<Type, ArchetypeDefinition>, List<ArchetypeDefinition>) RegisterArchetypes()
+    {
+        var byType  = new Dictionary<Type, ArchetypeDefinition>();
+        var byIndex = new List<ArchetypeDefinition>();
+
+        foreach (var prop in typeof(TArchetypes).GetProperties().OrderBy(p => p.MetadataToken))
+        {
+            var type = prop.PropertyType;
+            if (!typeof(IArcheType).IsAssignableFrom(type)) continue;
+            if (!type.IsInterface)
+                throw new ArchetypeValidationException(
+                    $"'{type.Name}' must be an interface to be registered as an archetype.");
+            if (byType.ContainsKey(type))
+                throw new ArchetypeValidationException(
+                    $"Archetype '{type.Name}' appears more than once in {typeof(TArchetypes).Name}.");
+
+            var def = ArchetypeDefinition.ExtractFrom(type, byIndex.Count);
+            byType[type] = def;
+            byIndex.Add(def);
+        }
+
+        return (byType, byIndex);
+    }
+
+    private static List<ISystem> RegisterSystems()
+    {
+        var systems = new List<ISystem>();
+
+        foreach (var prop in typeof(TSystems).GetProperties().OrderBy(p => p.MetadataToken))
+        {
+            var type = prop.PropertyType;
+            if (type.IsInterface || !typeof(ISystem).IsAssignableFrom(type)) continue;
+
+            var instance = Activator.CreateInstance(type) as ISystem
+                ?? throw new ArchetypeValidationException(
+                    $"Could not instantiate system '{type.Name}'. Ensure it has a public parameterless constructor.");
+            systems.Add(instance);
+        }
+
+        return systems;
+    }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
