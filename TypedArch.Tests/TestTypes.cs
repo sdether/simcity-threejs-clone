@@ -58,54 +58,40 @@ public class ValidSystem : ISystem
 {
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompB>();
-
-    public void Run(World world) { }
 }
 
 public class CompAOnlySystem : ISystem
 {
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA>();
-
-    public void Run(World world) { }
 }
 
 public class UnsatisfiableSystem : ISystem
 {
     private static readonly QueryDescription _query =
         new QueryDescription().WithAll<CompA, CompD>();
-
-    public void Run(World world) { }
 }
 
 public class ValidBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompA>();
-
-    public void Run(World world) { }
 }
 
 public class UndeclaredComponentBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompD>();
-
-    public void Run(World world) { }
 }
 
 public class ExcludesRequiredBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
         TypedQueryDescription.Create<IPrimary>().WithAll<CompB>().WithNone<CompA>();
-
-    public void Run(World world) { }
 }
 
 public class UnregisteredArchetypeSystem : ISystem
 {
     private static readonly TypedQueryDescription<IUnregistered> _query =
         TypedQueryDescription.Create<IUnregistered>().WithAll<CompA>();
-
-    public void Run(World world) { }
 }
