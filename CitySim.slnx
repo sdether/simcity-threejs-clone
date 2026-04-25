@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="CitySim.Simulation/CitySim.Simulation.csproj" />
+  <Project Path="CitySim.WebService/CitySim.WebService.csproj" />
+</Solution>

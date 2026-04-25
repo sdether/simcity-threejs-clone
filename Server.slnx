@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="Simulation/Simulation.csproj" />
-  <Project Path="WebService/WebService.csproj" />
-</Solution>
