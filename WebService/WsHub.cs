@@ -85,9 +85,9 @@ public sealed class WsHub
 
     private static string Summary(SimEvent e) => e switch
     {
-        WorldSnapshotEvent s => $"WorldSnapshot  size={s.Size} tiles={s.Tiles.Count} pop={s.Population}",
-        TileChangedEvent   t => $"TileChanged     x={t.X} y={t.Y} building={t.Building?.Type ?? "null"} status={t.Building?.Status ?? "-"}",
-        StatsChangedEvent  s => $"StatsChanged    t={s.SimTime} pop={s.Population}",
+        WorldSnapshotEvent s => $"WorldSnapshot  size={s.Size} tiles={s.Tiles.Count} pop={s.Stats.Population}",
+        TileChangedEvent   t => $"TileChanged     x={t.Tile.X} y={t.Tile.Y} building={t.Tile.Building?.Type ?? "null"} status={t.Tile.Building?.Status ?? "-"}",
+        StatsChangedEvent  s => $"StatsChanged    t={s.Stats.SimTime} pop={s.Stats.Population}",
         _                    => e.Type,
     };
 }

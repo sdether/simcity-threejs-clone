@@ -63,7 +63,7 @@ export class WorldView {
     #applySnapshot(event) {
         this.size = event.size;
         this.name = event.name;
-        this.stats = { simTime: event.simTime, population: event.population, demand: { ...event.demand } };
+        this.stats = { simTime: event.stats.simTime, population: event.stats.population, demand: { ...event.stats.demand } };
         this.tiles = Array.from({ length: event.size }, () => new Array(event.size).fill(null));
         for (const tile of event.tiles) {
             this.tiles[tile.x][tile.y] = { terrain: tile.terrain, building: tile.building };
@@ -71,12 +71,13 @@ export class WorldView {
     }
 
     #applyTileChanged(event) {
-        if (this.tiles[event.x]) {
-            this.tiles[event.x][event.y] = { terrain: event.terrain, building: event.building };
+        const { x, y, terrain, building } = event.tile;
+        if (this.tiles[x]) {
+            this.tiles[x][y] = { terrain, building };
         }
     }
 
     #applyStatsChanged(event) {
-        this.stats = { simTime: event.simTime, population: event.population, demand: { ...event.demand } };
+        this.stats = { simTime: event.stats.simTime, population: event.stats.population, demand: { ...event.stats.demand } };
     }
 }

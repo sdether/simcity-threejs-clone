@@ -3,9 +3,9 @@ import { envelopeForEvent, makeEnvelope, MessageType } from './protocol.js';
 
 function eventSummary(e) {
   switch (e.type) {
-    case 'WorldSnapshot': return `WorldSnapshot  size=${e.size} tiles=${e.tiles?.length} pop=${e.population}`;
-    case 'TileChanged':   return `TileChanged     x=${e.x} y=${e.y} building=${e.building?.type ?? 'null'} status=${e.building?.status ?? '-'}`;
-    case 'StatsChanged':  return `StatsChanged    t=${e.simTime} pop=${e.population} demand=${JSON.stringify(e.demand)}`;
+    case 'WorldSnapshot': return `WorldSnapshot  size=${e.size} tiles=${e.tiles?.length} pop=${e.stats?.population}`;
+    case 'TileChanged':   return `TileChanged     x=${e.tile?.x} y=${e.tile?.y} building=${e.tile?.building?.type ?? 'null'} status=${e.tile?.building?.status ?? '-'}`;
+    case 'StatsChanged':  return `StatsChanged    t=${e.stats?.simTime} pop=${e.stats?.population} demand=${JSON.stringify(e.stats?.demand)}`;
     default:              return e.type;
   }
 }

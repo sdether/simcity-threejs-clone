@@ -15,9 +15,7 @@ export function worldSnapshotEvent(world) {
         type: EventType.WorldSnapshot,
         name: world.name,
         size: world.size,
-        simTime: world.simTime,
-        population: world.citizens.length,
-        demand: { ...world.stats.demand },
+        stats: statsSnapshot(world),
         tiles,
     };
 }
@@ -28,7 +26,7 @@ export function worldSnapshotEvent(world) {
 export function tileChangedEvent(tile) {
     return {
         type: EventType.TileChanged,
-        ...tileSnapshot(tile),
+        tile: tileSnapshot(tile),
     };
 }
 
@@ -38,6 +36,12 @@ export function tileChangedEvent(tile) {
 export function statsChangedEvent(world) {
     return {
         type: EventType.StatsChanged,
+        stats: statsSnapshot(world),
+    };
+}
+
+function statsSnapshot(world) {
+    return {
         simTime: world.simTime,
         population: world.citizens.length,
         demand: { ...world.stats.demand },

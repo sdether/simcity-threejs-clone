@@ -53,16 +53,17 @@ export class Presentation extends THREE.Group {
                 this.#initFromSnapshot();
                 return; // full reinit — nothing else to process
             } else if (event.type === EventType.TileChanged) {
-                const hadBuilding = !!this.worldView.getTile(event.x, event.y)?.building;
+                const { x, y } = event.tile;
+                const hadBuilding = !!this.worldView.getTile(x, y)?.building;
                 this.worldView.apply([event]);
-                const hasBuilding = !!this.worldView.getTile(event.x, event.y)?.building;
+                const hasBuilding = !!this.worldView.getTile(x, y)?.building;
 
-                tilesToRefresh.add(`${event.x},${event.y}`);
+                tilesToRefresh.add(`${x},${y}`);
 
                 // Structural change: building added or removed — neighbors need visual refresh
                 // (e.g. roads and power lines update their connectivity style)
                 if (hadBuilding !== hasBuilding) {
-                    for (const key of this.#neighborKeys(event.x, event.y)) {
+                    for (const key of this.#neighborKeys(x, y)) {
                         neighborsToRefresh.add(key);
                     }
                 }

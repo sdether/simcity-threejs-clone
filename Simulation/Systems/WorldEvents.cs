@@ -19,30 +19,20 @@ public static class EventType
 public abstract record SimEvent(string Type);
 
 public record WorldSnapshotEvent(
-    string Name,
-    int    Size,
-    int    SimTime,
-    int    Population,
-    DemandSnapshot            Demand,
+    string                      Name,
+    int                         Size,
+    StatsSnapshot               Stats,
     IReadOnlyList<TileSnapshot> Tiles
 ) : SimEvent(EventType.WorldSnapshot);
 
-public record TileChangedEvent(
-    int             X,
-    int             Y,
-    string          Terrain,
-    BuildingSnapshot? Building
-) : SimEvent(EventType.TileChanged);
+public record TileChangedEvent(TileSnapshot Tile) : SimEvent(EventType.TileChanged);
 
-public record StatsChangedEvent(
-    int            SimTime,
-    int            Population,
-    DemandSnapshot Demand
-) : SimEvent(EventType.StatsChanged);
+public record StatsChangedEvent(StatsSnapshot Stats) : SimEvent(EventType.StatsChanged);
 
 // ── Snapshot value objects ────────────────────────────────────────────────────
 
 public record DemandSnapshot(double Residential, double Commercial, double Industrial);
+public record StatsSnapshot(int SimTime, int Population, DemandSnapshot Demand);
 public record TileSnapshot(int X, int Y, string Terrain, BuildingSnapshot? Building);
 public record DevelopmentSnapshot(string State, int Level);
 public record PowerSnapshot(int Supplied, int Required);
@@ -76,19 +66,17 @@ public static class WorldEventFactory
             for (int y = 0; y < world.Size; y++)
                 tiles.Add(TileSnap(world.Tiles[x][y]));
 
-        return new WorldSnapshotEvent(
-            world.Name, world.Size, world.SimTime, world.Citizens.Count,
-            DemandSnap(world.Stats.Demand), tiles);
+        return new WorldSnapshotEvent(world.Name, world.Size, StatsSnap(world), tiles);
     }
 
-    public static TileChangedEvent TileChanged(Tile tile) =>
-        new(tile.X, tile.Y, tile.Terrain,
-            tile.Building is { } b ? BuildingSnap(b) : null);
+    public static TileChangedEvent TileChanged(Tile tile) => new(TileSnap(tile));
 
-    public static StatsChangedEvent StatsChanged(World world) =>
-        new(world.SimTime, world.Citizens.Count, DemandSnap(world.Stats.Demand));
+    public static StatsChangedEvent StatsChanged(World world) => new(StatsSnap(world));
 
     // ── private helpers ───────────────────────────────────────────────────────
+
+    private static StatsSnapshot StatsSnap(World world) =>
+        new(world.SimTime, world.Citizens.Count, DemandSnap(world.Stats.Demand));
 
     private static TileSnapshot TileSnap(Tile tile) =>
         new(tile.X, tile.Y, tile.Terrain,
