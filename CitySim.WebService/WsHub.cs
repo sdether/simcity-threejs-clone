@@ -1,3 +1,5 @@
+using Simulation;
+
 namespace CitySim.WebService;
 
 using System.Collections.Concurrent;
@@ -86,7 +88,7 @@ public sealed class WsHub(ILogger<WsHub> logger)
     private static string Summary(SimEvent e) => e switch
     {
         WorldSnapshotEvent s => $"WorldSnapshot  size={s.Size} tiles={s.Tiles.Count} pop={s.Stats.Population}",
-        TileChangedEvent   t => $"TileChanged     x={t.Tile.X} y={t.Tile.Y} building={t.Tile.Building?.Type ?? "null"} status={t.Tile.Building?.Status ?? "-"}",
+        TileChangedEvent   t => $"TileChanged     x={t.Tile.X} y={t.Tile.Y} building={t.Tile.Building?.Type.ToString() ?? "null"} status={t.Tile.Building?.Status.ToString() ?? "-"}",
         StatsChangedEvent  s => $"StatsChanged    t={s.Stats.SimTime} pop={s.Stats.Population}",
         _                    => e.Type,
     };
