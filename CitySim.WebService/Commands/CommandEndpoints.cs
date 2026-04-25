@@ -1,5 +1,6 @@
 namespace CitySim.WebService;
 
+using CitySim.Simulation.Components;
 using Wolverine;
 using Wolverine.Http;
 using global::WebService.Commands;
@@ -15,9 +16,19 @@ public static class CommandEndpoints
     public static async Task<IResult> PlaceBuilding(
         PlaceBuildingRequest req, IMessageBus bus)
     {
-        if (string.IsNullOrWhiteSpace(req.Type))
+        var buildingType = req.Type switch
+        {
+            "residential" => BuildingType.Residential,
+            "commercial"  => BuildingType.Commercial,
+            "industrial"  => BuildingType.Industrial,
+            "road"        => BuildingType.Road,
+            "power-plant" => BuildingType.PowerPlant,
+            "power-line"  => BuildingType.PowerLine,
+            _             => (BuildingType?)null,
+        };
+        if (buildingType is null)
             return Results.BadRequest(new { error = "x, y, type required" });
-        await bus.SendAsync(new PlaceBuildingCommand(req.X, req.Y, req.Type));
+        await bus.SendAsync(new PlaceBuildingCommand(req.X, req.Y, buildingType.Value));
         return Results.Accepted();
     }
 

@@ -1,3 +1,6 @@
+using CitySim.Simulation.Components;
+using Simulation;
+
 namespace CitySim.WebService;
 
 using CitySim.Simulation;
@@ -39,7 +42,7 @@ public sealed class SimulationHost : IDisposable
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public void PlaceBuilding(int x, int y, string type) => _sim.PlaceBuilding(x, y, type);
+    public void PlaceBuilding(int x, int y, BuildingType type) => _sim.PlaceBuilding(x, y, type);
     public void Bulldoze(int x, int y)                   => _sim.Bulldoze(x, y);
     public void Pause()                                   => _sim.Halt();
     public void Resume()                                  => _sim.Run();

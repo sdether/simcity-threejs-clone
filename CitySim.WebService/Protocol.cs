@@ -1,3 +1,5 @@
+using Simulation;
+
 namespace CitySim.WebService;
 
 using System.Text.Json;
@@ -32,6 +34,7 @@ public static class EnvelopeSerializer
     {
         PropertyNamingPolicy        = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition      = JsonIgnoreCondition.WhenWritingNull,
+        Converters                  = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
     };
 
     /// <summary>

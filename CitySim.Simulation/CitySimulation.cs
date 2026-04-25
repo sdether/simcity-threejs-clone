@@ -1,11 +1,13 @@
-using CitySim.Simulation.Model.Buildings.Zones;
+using CitySim.Simulation.Components;
+using CitySim.Simulation.Managers;
+using CitySim.Simulation.Systems.Citizens;
+using Simulation;
 
 namespace CitySim.Simulation;
 
-using CitySim.Simulation.Model;
+using Model;
 using Systems;
 using Systems.Buildings;
-using Systems.Services;
 
 public enum SimulationState { Stopped, Running }
 
@@ -16,19 +18,27 @@ public enum SimulationState { Stopped, Running }
 public sealed class CitySimulation : IDisposable
 {
     private readonly Lock          _lock            = new();
-    private readonly BuildingManager _buildingManager = new();
-    private readonly List<SimService> _services;
+    private readonly BuildingFactory _buildingFactory = new();
     private readonly List<Action<IReadOnlyList<SimEvent>>> _subscribers = [];
-
+    private readonly World _world;
+    private readonly SimSystem _powerSystem = new PowerSystem();
+    private readonly SimSystem _commerceSystem = new CommerceSystem();
+    private readonly SimSystem _developmentSystem = new DevelopmentSystem();
+    private readonly SimSystem _jobsSystem = new JobsSystem();
+    private readonly SimSystem _residentsSystem = new ResidentsSystem();
+    private readonly SimSystem _roadAccessSystem = new RoadAccessSystem();
+    private readonly SimSystem _vacancySystem = new VacancySystem();
+    private readonly SimSystem _buildingStateSystem = new BuildingStateSystem();
+    private readonly SimSystem _homelessnessSystem = new HomelessnessSystem();
+    private readonly SimSystem _employmentSystem = new EmploymentSystem();
+    
     private Timer?          _timer;
     private SimulationState _state = SimulationState.Stopped;
 
-    private World           _world { get; }
 
     public CitySimulation(int size, string name = "My City")
     {
         _world    = new World(name, size);
-        _services = [new PowerService()];
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -84,14 +94,16 @@ public sealed class CitySimulation : IDisposable
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public void PlaceBuilding(int x, int y, string buildingType)
+    public void PlaceBuilding(int x, int y, BuildingType buildingType)
     {
         lock (_lock)
         {
-            var tile = TileTools.GetTile(_world, x, y);
-            if (tile is null) return;
-            BuildingManager.Create(tile, buildingType);
-            if (tile.Updated) Notify([WorldEventFactory.TileChanged(tile)]);
+            if (_world.GetGridPosition(x, y) is { } position)
+            {
+                var entity = _world.GetTile(position);
+                if (entity.HasValue) return;
+                BuildingFactory.Create(_world, position, buildingType);
+            }
         }
     }
 
@@ -99,10 +111,12 @@ public sealed class CitySimulation : IDisposable
     {
         lock (_lock)
         {
-            var tile = TileTools.GetTile(_world, x, y);
-            if (tile is null) return;
-            _buildingManager.Bulldoze(_world, tile);
-            if (tile.Updated) Notify([WorldEventFactory.TileChanged(tile)]);
+            if (_world.GetGridPosition(x, y) is { } position)
+            {
+                var entity = _world.GetTile(position);
+                if (!entity.HasValue) return;
+                _buildingFactory.Bulldoze(_world, position);
+            }
         }
     }
 
@@ -111,51 +125,25 @@ public sealed class CitySimulation : IDisposable
     private void Tick()
     {
         lock (_lock)
-        {
-            CleanWorld();
-
-            foreach (var svc in _services)
-                svc.Simulate(_world);
-
-            var vacancies = new List<ResidentialZone>();
-            for (var x = 0; x < _world.Size; x++)
-            {
-                for (var y = 0; y < _world.Size; y++)
-                {
-                    var tile = _world.Tiles[x][y];
-                    _buildingManager.Simulate(_world, tile);
-                    if (tile.Building is ResidentialZone { Vacancies: > 0 } rz)
-                        vacancies.Add(rz);
-                }
-            }
-
-            foreach (var zone in vacancies)
-            {
-                if (Random.Shared.NextDouble() < SimConfig.Modules.Residents.ResidentMoveInChance)
-                {
-                    var resident = new Citizen { Residence = zone };
-                    zone.Residents.Add(resident);
-                    _world.Citizens.Add(resident);
-                    zone.Updated = zone.Tile.Updated = true;
-                }
-            }
-
-            var snapshot = _world.Citizens.ToList();
-            _world.Citizens.Clear();
-            foreach (var c in snapshot.Where(c => CitizenManager.Simulate(_world, c)))
-            {
-                _world.Citizens.Add(c);
-            }
+        { 
+            _powerSystem.Run(_world);
+            _roadAccessSystem.Run(_world);
+            _developmentSystem.Run(_world);
+            _jobsSystem.Run(_world);
+            _residentsSystem.Run(_world);
+            _commerceSystem.Run(_world);
+            _vacancySystem.Run(_world);
+            _buildingStateSystem.Run(_world);
+            _homelessnessSystem.Run(_world);
+            _employmentSystem.Run(_world);
 
             _world.SimTime++;
 
-            var events = new List<SimEvent>();
-            for (var x = 0; x < _world.Size; x++)
-                for (var y = 0; y < _world.Size; y++)
-                {
-                    var tile = _world.Tiles[x][y];
-                    if (tile.Updated) events.Add(WorldEventFactory.TileChanged(tile));
-                }
+            var events = _world.ResetChangedTiles()
+                .Select(tile => WorldEventFactory.TileChanged(_world, tile))
+                .Cast<SimEvent>()
+                .ToList();
+
             events.Add(WorldEventFactory.StatsChanged(_world));
             Notify(events);
         }
@@ -166,17 +154,5 @@ public sealed class CitySimulation : IDisposable
     private void Notify(IReadOnlyList<SimEvent> events)
     {
         foreach (var sub in _subscribers) sub(events);
-    }
-
-    private void CleanWorld()
-    {
-        foreach (var c in _world.Citizens) c.Updated = false;
-        for (int x = 0; x < _world.Size; x++)
-            for (int y = 0; y < _world.Size; y++)
-            {
-                var tile = _world.Tiles[x][y];
-                tile.Updated = false;
-                tile.Building?.Updated = false;
-            }
     }
 }

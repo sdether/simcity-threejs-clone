@@ -1,3 +1,4 @@
+using CitySim.Simulation;
 using CitySim.WebService;
 using WebService.Commands;
 using Wolverine;
@@ -42,6 +43,8 @@ app.Map("/ws", async (HttpContext ctx, WsHub hub, IHostApplicationLifetime lifet
 app.MapWolverineEndpoints();
 
 // ── Wire simulation → hub, then start ─────────────────────────────────────────
+
+SimLog.Factory = app.Services.GetRequiredService<ILoggerFactory>();
 
 var simHost = app.Services.GetRequiredService<SimulationHost>();
 var wsHub   = app.Services.GetRequiredService<WsHub>();
