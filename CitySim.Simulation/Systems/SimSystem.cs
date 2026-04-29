@@ -1,16 +1,10 @@
 using Arch.Core;
+using TypedArch;
 using World = CitySim.Simulation.Model.World;
 
 namespace CitySim.Simulation.Systems;
 
-public abstract class SimSystem
+public abstract class SimSystem : ISystem
 {
-    protected readonly QueryDescription QueryDescription;
-    
-    protected SimSystem(QueryDescription queryDescription)
-    {
-        QueryDescription = queryDescription;
-    }
-    
     public abstract void Run(World world);
 }

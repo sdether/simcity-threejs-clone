@@ -1,5 +1,5 @@
 using CitySim.Simulation.Components;
-using CitySim.Simulation.Managers;
+using CitySim.Simulation.Entities;
 using CitySim.Simulation.Systems.Citizens;
 using Simulation;
 

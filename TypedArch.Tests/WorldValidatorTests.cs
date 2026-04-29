@@ -57,6 +57,24 @@ public class WorldValidatorTests
         Assert.That(report.Errors, Has.Some.Contains("IUnregistered"));
     }
 
+    // ── Abstract archetype bound queries ─────────────────────────────────────
+
+    [Test]
+    public void Validate_NoErrors_WhenTypedQueryBoundToAbstractArchetype()
+    {
+        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
+        var report = world.Validate([new ValidAbstractBoundSystem()]);
+        Assert.That(report.Errors, Is.Empty, string.Join("\n", report.Errors));
+    }
+
+    [Test]
+    public void Validate_Error_WhenAbstractBoundQueryUsesUndeclaredComponent()
+    {
+        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
+        var report = world.Validate([new UndeclaredOnAbstractBoundSystem()]);
+        Assert.That(report.Errors, Has.Some.Contains("CompD"));
+    }
+
     // ── Dead optional warnings ────────────────────────────────────────────────
 
     [Test]

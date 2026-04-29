@@ -5,4 +5,4 @@ namespace TypedArch;
 /// components; nullable properties declare optional components. Never implemented —
 /// the interface itself is the schema.
 /// </summary>
-public interface IArcheType { }
+public interface IArcheType : IAbstractArcheType { }

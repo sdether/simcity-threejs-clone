@@ -97,6 +97,26 @@ public class TypedWorldTests
         _world.Destroy(entity);
     }
 
+    // ── TypedQueryDescription factories ──────────────────────────────────────
+
+    [Test]
+    public void From_PrePopulatesAllRequiredComponents()
+    {
+        var tqd   = TypedQueryDescription.From<IPrimary>();
+        var span  = tqd.Inner.All.Components.ToArray();
+        var types = span.Select(ct => ct.Type).ToHashSet();
+        Assert.That(types, Contains.Item(typeof(CompA)));
+    }
+
+    [Test]
+    public void From_DoesNotIncludeOptionalComponents()
+    {
+        var tqd   = TypedQueryDescription.From<IPrimary>();
+        var span  = tqd.Inner.All.Components.ToArray();
+        var types = span.Select(ct => ct.Type).ToHashSet();
+        Assert.That(types, Does.Not.Contain(typeof(CompB))); // CompB is optional on IPrimary
+    }
+
     // ── GetArchetype ──────────────────────────────────────────────────────────
 
     [Test]

@@ -1,10 +1,9 @@
 using Arch.Core;
 using Arch.Core.Extensions;
 using CitySim.Simulation.Components;
+using World = CitySim.Simulation.Model.World;
 
-namespace CitySim.Simulation.Managers;
-
-using Model;
+namespace CitySim.Simulation.Entities;
 
 public static class CitizenFactory
 {

@@ -37,9 +37,15 @@ public class ArchetypeDefinition
         var optional    = new HashSet<Type>();
         var parentTypes = new List<Type>();
 
-        // Direct IArcheType parent interfaces — not IArcheType itself, not transitive ancestors.
-        var allAncestors = archetypeType.GetInterfaces()
-            .Where(i => i != typeof(IArcheType) && typeof(IArcheType).IsAssignableFrom(i))
+        // All parent interfaces except the two marker interfaces themselves — both plain and
+        // IAbstractArcheType-implementing base interfaces are valid component sources.
+        var allParents = archetypeType.GetInterfaces()
+            .Where(i => i != typeof(IArcheType) && i != typeof(IAbstractArcheType))
+            .ToHashSet();
+
+        // IArcheType-implementing ancestors only — for parent type tracking in the validator.
+        var allAncestors = allParents
+            .Where(i => typeof(IArcheType).IsAssignableFrom(i))
             .ToHashSet();
 
         foreach (var candidate in allAncestors)
@@ -50,8 +56,8 @@ public class ArchetypeDefinition
             if (isDirect) parentTypes.Add(candidate);
         }
 
-        // Collect properties from this interface and all IArcheType ancestors.
-        foreach (var iface in allAncestors.Prepend(archetypeType))
+        // Collect properties from this interface and all parent interfaces.
+        foreach (var iface in allParents.Prepend(archetypeType))
         {
             foreach (var prop in iface.GetProperties(
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))

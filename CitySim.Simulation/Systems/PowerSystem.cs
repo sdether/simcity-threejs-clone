@@ -1,5 +1,7 @@
 using Arch.Buffer;
 using Arch.Core;
+using CitySim.Simulation.Entities;
+using TypedArch;
 
 namespace CitySim.Simulation.Systems;
 
@@ -13,19 +15,19 @@ using CitySim.Simulation.Model;
 /// </summary>
 public class PowerSystem : SimSystem
 {
-    private static readonly ILogger<PowerSystem> _logger = SimLog.For<PowerSystem>();      
-    private static readonly QueryDescription _powerConsumerQuery =
-        new QueryDescription().WithAll<GridPosition, PowerConsumer>();
+    private static readonly ILogger<PowerSystem> _logger = SimLog.For<PowerSystem>();
 
-    public PowerSystem() : base(new QueryDescription().WithAll<GridPosition, PowerPlant>())
-    {
-    }
+    private static readonly TypedQueryDescription<IPowerPlant> PowerPlantQuery = TypedQueryDescription
+        .From<IPowerPlant>();
 
+    private static readonly TypedQueryDescription<IBuilding> PowerConsumerQuery = TypedQueryDescription
+        .From<IBuilding>();
+    
     public override void Run(World world)
     {
         // Collect power plants and power-consuming buildings.
         var plants = new Dictionary<GridPosition, PlantState>();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in PowerPlantQuery.Inner,
             (Entity entity, ref GridPosition position, ref PowerPlant powerPlant) =>
             {
                 var frontier = new Queue<GridPosition>();
@@ -38,7 +40,7 @@ public class PowerSystem : SimSystem
 
         // Collect power plants and power-consuming buildings.
         var consumers = new Dictionary<GridPosition, (Entity Entity, PowerConsumer Power)>();
-        world.Ecs.Query(in _powerConsumerQuery,
+        world.Ecs.Query(in PowerConsumerQuery.Inner,
             (Entity entity, ref GridPosition position, ref PowerConsumer powerConsumer) =>
             {
                 consumers.Add(position, (entity, powerConsumer));
@@ -86,7 +88,7 @@ public class PowerSystem : SimSystem
         }
 
         using var cmdBuffer = new CommandBuffer();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in PowerPlantQuery.Inner,
             (Entity entity, ref GridPosition position, ref PowerPlant powerPlant) =>
             {
                 var state = plants[position];
@@ -98,7 +100,7 @@ public class PowerSystem : SimSystem
                 }
             }
         );
-        world.Ecs.Query(in _powerConsumerQuery,
+        world.Ecs.Query(in PowerConsumerQuery.Inner,
             (Entity entity, ref GridPosition position, ref PowerConsumer powerConsumer) =>
             {
                 var (_, power) = consumers[position];

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Arch.Core;
 
 namespace TypedArch;
@@ -18,7 +19,7 @@ internal interface ITypedQueryDescription
 /// the archetype's declared component set.
 /// </summary>
 public readonly struct TypedQueryDescription<TArcheType> : ITypedQueryDescription
-    where TArcheType : IArcheType
+    where TArcheType : IAbstractArcheType
 {
     public readonly QueryDescription Inner;
 
@@ -86,7 +87,32 @@ public readonly struct TypedQueryDescription<TArcheType> : ITypedQueryDescriptio
 /// <summary>Static factory for TypedQueryDescription&lt;T&gt;.</summary>
 public static class TypedQueryDescription
 {
-    public static TypedQueryDescription<TArcheType> Create<TArcheType>()
-        where TArcheType : IArcheType =>
+    /// <summary>Empty query bound to <typeparamref name="TArcheType"/> for manual composition.</summary>
+    public static TypedQueryDescription<TArcheType> Satisfies<TArcheType>()
+        where TArcheType : IAbstractArcheType =>
         new(new QueryDescription());
+
+    /// <summary>
+    /// Query pre-populated with WithAll for every required component declared on
+    /// <typeparamref name="TArcheType"/>, bound to that archetype.
+    /// </summary>
+    public static TypedQueryDescription<TArcheType> From<TArcheType>()
+        where TArcheType : IAbstractArcheType
+    {
+        var def = ArchetypeDefinition.ExtractFrom(typeof(TArcheType), -1);
+        var componentTypes = def.Required.Select(GetComponentType).ToArray();
+        var inner = new QueryDescription(
+            all:  new Signature(componentTypes),
+            any:  Signature.Null,
+            none: Signature.Null
+        );
+        return new TypedQueryDescription<TArcheType>(inner);
+    }
+
+    private static ComponentType GetComponentType(Type t) =>
+        (ComponentType)(typeof(Component<>)
+            .MakeGenericType(t)
+            .GetField("ComponentType", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException($"Cannot resolve Arch ComponentType for {t.Name}"))
+            .GetValue(null)!;
 }

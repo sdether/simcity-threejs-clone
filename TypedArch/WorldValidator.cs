@@ -56,12 +56,22 @@ public static ValidationReport Validate(
                 var archetypeType = fieldBinding;
                 if (archetypeType is null) continue;
 
-                if (!definitions.TryGetValue(archetypeType, out var boundDef))
+                ArchetypeDefinition boundDef;
+                if (!definitions.TryGetValue(archetypeType, out var registeredDef))
                 {
-                    errors.Add(
-                        $"System '{system.GetType().Name}' has a query bound to " +
-                        $"'{archetypeType.Name}' which is not registered.");
-                    continue;
+                    // Concrete archetypes (IArcheType) must be registered; abstract ones need not be.
+                    if (typeof(IArcheType).IsAssignableFrom(archetypeType))
+                    {
+                        errors.Add(
+                            $"System '{system.GetType().Name}' has a query bound to " +
+                            $"'{archetypeType.Name}' which is not registered.");
+                        continue;
+                    }
+                    boundDef = ArchetypeDefinition.ExtractFrom(archetypeType, -1);
+                }
+                else
+                {
+                    boundDef = registeredDef;
                 }
 
                 var undeclared = withAll.Concat(withAny)

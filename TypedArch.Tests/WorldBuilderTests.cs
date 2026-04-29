@@ -47,6 +47,29 @@ public class WorldBuilderTests
 
         Assert.That(ex!.Message, Does.Contain("CompA"));
     }
+
+    [Test]
+    public void Create_Succeeds_ForConcreteChildOfPlainBase()
+    {
+        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
+
+        Assert.DoesNotThrow(() =>
+        {
+            var entity = world.Create<IConcreteChild>(new CompA(), new CompC());
+            world.Destroy(entity);
+        });
+    }
+
+    [Test]
+    public void ConcreteChild_InheritsPlainBaseComponents()
+    {
+        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
+
+        var ex = Assert.Throws<ArchetypeValidationException>(() =>
+            world.Create<IConcreteChild>(new CompC())); // missing CompA from abstract parent
+
+        Assert.That(ex!.Message, Does.Contain("CompA"));
+    }
 }
 
 // ── Manifests used only in failure-path tests ─────────────────────────────────
@@ -63,3 +86,8 @@ public interface IConcreteArchetypeManifest
 }
 
 public class ConcreteArchetype : IArcheType { }
+
+public interface IConcreteChildManifest
+{
+    IConcreteChild ConcreteChild { get; }
+}

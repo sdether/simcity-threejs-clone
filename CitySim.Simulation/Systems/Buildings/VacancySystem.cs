@@ -1,7 +1,7 @@
 ﻿using Arch.Buffer;
 using Arch.Core;
 using CitySim.Simulation.Components;
-using CitySim.Simulation.Managers;
+using CitySim.Simulation.Entities;
 using World = CitySim.Simulation.Model.World;
 
 namespace CitySim.Simulation.Systems.Buildings;

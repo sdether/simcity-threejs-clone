@@ -34,6 +34,16 @@ public interface IUnregistered : IArcheType
     CompA CompA { get; }
 }
 
+public interface IAbstractBase : IAbstractArcheType
+{
+    CompA CompA { get; }
+}
+
+public interface IConcreteChild : IAbstractBase, IArcheType
+{
+    CompC CompC { get; }
+}
+
 // ── Manifests ─────────────────────────────────────────────────────────────────
 
 public interface ITestArchetypes
@@ -75,23 +85,35 @@ public class UnsatisfiableSystem : ISystem
 public class ValidBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
-        TypedQueryDescription.Create<IPrimary>().WithAll<CompA>();
+        TypedQueryDescription.Satisfies<IPrimary>().WithAll<CompA>();
 }
 
 public class UndeclaredComponentBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
-        TypedQueryDescription.Create<IPrimary>().WithAll<CompD>();
+        TypedQueryDescription.Satisfies<IPrimary>().WithAll<CompD>();
 }
 
 public class ExcludesRequiredBoundSystem : ISystem
 {
     private static readonly TypedQueryDescription<IPrimary> _query =
-        TypedQueryDescription.Create<IPrimary>().WithAll<CompB>().WithNone<CompA>();
+        TypedQueryDescription.Satisfies<IPrimary>().WithAll<CompB>().WithNone<CompA>();
 }
 
 public class UnregisteredArchetypeSystem : ISystem
 {
     private static readonly TypedQueryDescription<IUnregistered> _query =
-        TypedQueryDescription.Create<IUnregistered>().WithAll<CompA>();
+        TypedQueryDescription.Satisfies<IUnregistered>().WithAll<CompA>();
+}
+
+public class ValidAbstractBoundSystem : ISystem
+{
+    private static readonly TypedQueryDescription<IAbstractBase> _query =
+        TypedQueryDescription.Satisfies<IAbstractBase>().WithAll<CompA>();
+}
+
+public class UndeclaredOnAbstractBoundSystem : ISystem
+{
+    private static readonly TypedQueryDescription<IAbstractBase> _query =
+        TypedQueryDescription.Satisfies<IAbstractBase>().WithAll<CompD>(); // not on IAbstractBase
 }
