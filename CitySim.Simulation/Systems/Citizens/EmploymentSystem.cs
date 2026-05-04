@@ -1,23 +1,24 @@
 ﻿using Arch.Buffer;
 using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
 using Simulation;
+using TypedArch;
 using World = CitySim.Simulation.Model.World;
 
 namespace CitySim.Simulation.Systems.Citizens;
 
 public class EmploymentSystem : SimSystem
 {
-    public EmploymentSystem() : base(new QueryDescription()
+    private static readonly TypedQueryDescription<ICitizen> CitizenQuery = TypedQueryDescription
+        .Satisfies<ICitizen>()
         .WithAll<CitizenInfo, CitizenStatus, Residency>()
-        .WithNone<Job>())
-    {
-    }
+        .WithNone<Job>();
 
     public override void Run(World world)
     {
         using var cmdBuffer = new CommandBuffer();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in CitizenQuery.Inner,
             (Entity entity, ref CitizenInfo info, ref CitizenStatus status, ref Residency residency) =>
             {
                 if(status.State != CitizenState.Unemployed) return;

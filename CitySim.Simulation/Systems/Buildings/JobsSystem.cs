@@ -2,7 +2,9 @@ using System.Net;
 using Arch.Core;
 using Arch.Core.Extensions;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
 using CitySim.Simulation.Extensions;
+using TypedArch;
 using Development = CitySim.Simulation.Components.Development;
 
 namespace CitySim.Simulation.Systems.Buildings;
@@ -11,14 +13,14 @@ using CitySim.Simulation.Model;
 
 public class JobsSystem : SimSystem
 {
-    public JobsSystem() : base(new QueryDescription().WithAll<GridPosition,Development,Employer>())
-    {
-    }
+    private static readonly TypedQueryDescription<IEmployer> JobsQuery = TypedQueryDescription
+        .Satisfies<IEmployer>()
+        .WithAll<GridPosition,Development,Employer>();
 
     public override void Run(World world)
     {
         var layoffs = new List<Entity>();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in JobsQuery.Inner,
             (Entity entity, ref GridPosition position, ref Development development, ref Employer employer) =>
             {
                 if (development.State == DevelopmentState.Abandoned)

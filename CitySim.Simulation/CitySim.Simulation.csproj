@@ -4,6 +4,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Required by TypedArch.Validator: copies all NuGet assemblies next to the DLL
+         so AssemblyDependencyResolver can load them when validating archetypes. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,5 +25,14 @@
   <ItemGroup>
     <ProjectReference Include="..\TypedArch\TypedArch.csproj" />
   </ItemGroup>
+
+
+  <Target Name="ValidateArchetypes" AfterTargets="Build">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\TypedArch.Validator\TypedArch.Validator.csproj"
+             Targets="Build"
+             Properties="Configuration=$(Configuration);BuildProjectReferences=false" />
+    <Exec Command="dotnet &quot;$(MSBuildThisFileDirectory)..\TypedArch.Validator\bin\$(Configuration)\net10.0\TypedArch.Validator.dll&quot; &quot;$(TargetPath)&quot;"
+          ConsoleToMSBuild="true" />
+  </Target>
 
 </Project>

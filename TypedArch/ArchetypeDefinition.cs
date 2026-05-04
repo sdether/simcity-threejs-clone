@@ -2,32 +2,25 @@ using System.Reflection;
 
 namespace TypedArch;
 
-/// <summary>
-/// Stamped on every entity at creation so the archetype can be resolved from an entity.
-/// </summary>
-public readonly record struct ArchetypeRef(int Index);
-
 public class ArchetypeDefinition
 {
     public Type                ArchetypeType { get; }
-    public int                 Index         { get; }
     public IReadOnlySet<Type>  Required      { get; }
     public IReadOnlySet<Type>  Optional      { get; }
     public IReadOnlySet<Type>  All           { get; }
     public IReadOnlyList<Type> ParentTypes   { get; }
 
-    private ArchetypeDefinition(Type archetypeType, int index,
+    private ArchetypeDefinition(Type archetypeType,
         HashSet<Type> required, HashSet<Type> optional, List<Type> parentTypes)
     {
         ArchetypeType = archetypeType;
-        Index         = index;
         Required      = required;
         Optional      = optional;
         All           = required.Union(optional).ToHashSet();
         ParentTypes   = parentTypes;
     }
 
-    internal static ArchetypeDefinition ExtractFrom(Type archetypeType, int index)
+    public static ArchetypeDefinition ExtractFrom(Type archetypeType)
     {
         if (!archetypeType.IsInterface)
             throw new ArchetypeValidationException(
@@ -70,6 +63,6 @@ public class ArchetypeDefinition
             }
         }
 
-        return new ArchetypeDefinition(archetypeType, index, required, optional, parentTypes);
+        return new ArchetypeDefinition(archetypeType, required, optional, parentTypes);
     }
 }

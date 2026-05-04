@@ -2,7 +2,9 @@ using Arch.Buffer;
 using Arch.Core;
 using Arch.Core.Extensions;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
 using CitySim.Simulation.Extensions;
+using TypedArch;
 
 namespace CitySim.Simulation.Systems.Buildings;
 
@@ -10,14 +12,14 @@ using CitySim.Simulation.Model;
 
 public class ResidentsSystem : SimSystem
 {
-    public ResidentsSystem() : base(new QueryDescription().WithAll<GridPosition, Residence, Development>())
-    {
-    }
+    private static readonly TypedQueryDescription<IResidential> ResidenceQuery = TypedQueryDescription
+        .Satisfies<IResidential>()
+        .WithAll<GridPosition, Residence, Development>();
 
     public override void Run(World world)
     {
         using var cmdBuffer = new CommandBuffer();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in ResidenceQuery.Inner,
             (Entity entity, ref GridPosition position, ref Residence residence, ref Development development) =>
             {
                 switch (development.State)

@@ -1,6 +1,8 @@
 using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
 using Simulation;
+using TypedArch;
 
 namespace CitySim.Simulation.Systems.Buildings;
 
@@ -8,13 +10,13 @@ using CitySim.Simulation.Model;
 
 public class RoadAccessSystem : SimSystem
 {
-    public RoadAccessSystem() : base(new QueryDescription().WithAll<GridPosition, RoadAccessUser>())
-    {
-    }
+    private static readonly TypedQueryDescription<IGridOccupantWithRoadAccess> RoadQuery = TypedQueryDescription
+        .Satisfies<IGridOccupantWithRoadAccess>()
+        .WithAll<GridPosition, RoadAccessUser>();
 
     public override void Run(World world)
     {
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in RoadQuery.Inner,
             (Entity entity, ref GridPosition position, ref RoadAccessUser roadAccessUser) =>
             {
                 var road = TileTools.FindTile(

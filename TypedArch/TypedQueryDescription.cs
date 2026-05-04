@@ -96,10 +96,10 @@ public static class TypedQueryDescription
     /// Query pre-populated with WithAll for every required component declared on
     /// <typeparamref name="TArcheType"/>, bound to that archetype.
     /// </summary>
-    public static TypedQueryDescription<TArcheType> From<TArcheType>()
+    public static TypedQueryDescription<TArcheType> For<TArcheType>()
         where TArcheType : IAbstractArcheType
     {
-        var def = ArchetypeDefinition.ExtractFrom(typeof(TArcheType), -1);
+        var def = ArchetypeDefinition.ExtractFrom(typeof(TArcheType));
         var componentTypes = def.Required.Select(GetComponentType).ToArray();
         var inner = new QueryDescription(
             all:  new Signature(componentTypes),

@@ -18,10 +18,10 @@ public class PowerSystem : SimSystem
     private static readonly ILogger<PowerSystem> _logger = SimLog.For<PowerSystem>();
 
     private static readonly TypedQueryDescription<IPowerPlant> PowerPlantQuery = TypedQueryDescription
-        .From<IPowerPlant>();
+        .For<IPowerPlant>();
 
     private static readonly TypedQueryDescription<IBuilding> PowerConsumerQuery = TypedQueryDescription
-        .From<IBuilding>();
+        .For<IBuilding>();
     
     public override void Run(World world)
     {

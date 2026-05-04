@@ -67,7 +67,7 @@ public static ValidationReport Validate(
                             $"'{archetypeType.Name}' which is not registered.");
                         continue;
                     }
-                    boundDef = ArchetypeDefinition.ExtractFrom(archetypeType, -1);
+                    boundDef = ArchetypeDefinition.ExtractFrom(archetypeType);
                 }
                 else
                 {

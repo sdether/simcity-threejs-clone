@@ -1,6 +1,8 @@
 using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
 using CitySim.Simulation.Extensions;
+using TypedArch;
 using Development = CitySim.Simulation.Components.Development;
 using PowerConsumer = CitySim.Simulation.Components.PowerConsumer;
 
@@ -10,14 +12,12 @@ using CitySim.Simulation.Model;
 
 public class DevelopmentSystem : SimSystem
 {
-    public DevelopmentSystem() : base(new QueryDescription()
-        .WithAll<GridPosition, Development, BuildingState, PowerConsumer, RoadAccessUser>())
-    {
-    }
+    private static readonly TypedQueryDescription<IBuilding> DevelopmentQuery = TypedQueryDescription
+        .For<IBuilding>();
 
     public override void Run(World world)
     {
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in DevelopmentQuery.Inner,
             (Entity entity, ref GridPosition position, ref Development development, ref BuildingState buildingState,
                 ref PowerConsumer powerConsumer, ref RoadAccessUser roadAccessUser) =>
             {

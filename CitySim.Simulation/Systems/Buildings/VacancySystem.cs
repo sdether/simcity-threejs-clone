@@ -2,20 +2,22 @@
 using Arch.Core;
 using CitySim.Simulation.Components;
 using CitySim.Simulation.Entities;
+using TypedArch;
 using World = CitySim.Simulation.Model.World;
 
 namespace CitySim.Simulation.Systems.Buildings;
 
 public class VacancySystem : SimSystem
 {
-    public VacancySystem() : base(new QueryDescription().WithAll<GridPosition, Vacancies>())
-    {
-    }
+    private static readonly TypedQueryDescription<IResidential> VacancyQuery = TypedQueryDescription
+        .Satisfies<IResidential>()
+        .WithAll<GridPosition, Vacancies>();
+    
 
     public override void Run(World world)
     {
         using var cmdBuffer = new CommandBuffer();
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in VacancyQuery.Inner,
             (Entity building, ref GridPosition position, ref Vacancies vacancies) =>
             {
                 var vacancyTotal = vacancies.Count;

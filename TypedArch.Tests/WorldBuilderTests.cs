@@ -24,52 +24,6 @@ public class WorldBuilderTests
         Assert.Throws<ArchetypeValidationException>(() =>
             new TypedWorld<IConcreteArchetypeManifest, ITestSystems>());
     }
-
-    [Test]
-    public void Archetype_InheritsParentComponents()
-    {
-        using var world = TestWorld.Build();
-
-        Assert.DoesNotThrow(() =>
-        {
-            var entity = world.Create<ITertiary>(new CompA(), new CompB(), new CompC());
-            world.Destroy(entity);
-        });
-    }
-
-    [Test]
-    public void Archetype_InheritedRequiredComponent_IsEnforced()
-    {
-        using var world = TestWorld.Build();
-
-        var ex = Assert.Throws<ArchetypeValidationException>(() =>
-            world.Create<ITertiary>(new CompC())); // missing CompA
-
-        Assert.That(ex!.Message, Does.Contain("CompA"));
-    }
-
-    [Test]
-    public void Create_Succeeds_ForConcreteChildOfPlainBase()
-    {
-        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
-
-        Assert.DoesNotThrow(() =>
-        {
-            var entity = world.Create<IConcreteChild>(new CompA(), new CompC());
-            world.Destroy(entity);
-        });
-    }
-
-    [Test]
-    public void ConcreteChild_InheritsPlainBaseComponents()
-    {
-        using var world = new TypedWorld<IConcreteChildManifest, ITestSystems>();
-
-        var ex = Assert.Throws<ArchetypeValidationException>(() =>
-            world.Create<IConcreteChild>(new CompC())); // missing CompA from abstract parent
-
-        Assert.That(ex!.Message, Does.Contain("CompA"));
-    }
 }
 
 // ── Manifests used only in failure-path tests ─────────────────────────────────

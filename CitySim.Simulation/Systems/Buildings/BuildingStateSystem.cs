@@ -1,18 +1,19 @@
 ﻿using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
+using TypedArch;
 using World = CitySim.Simulation.Model.World;
 
 namespace CitySim.Simulation.Systems.Buildings;
 
 public class BuildingStateSystem : SimSystem
 {
-    public BuildingStateSystem() : base(new QueryDescription().WithAll<GridPosition, BuildingState, RoadAccessUser>())
-    {
-    }
-
+    private static readonly TypedQueryDescription<IGridOccupantWithRoadAccess> BuildingStateQuery = TypedQueryDescription
+        .For<IGridOccupantWithRoadAccess>();
+    
     public override void Run(World world)
     {
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in BuildingStateQuery.Inner,
             (Entity entity, ref GridPosition position,ref BuildingState buildingState, ref RoadAccessUser roadAccessUser) =>
             {
                 var hasPower = true;

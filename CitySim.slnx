@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="CitySim.WebService/CitySim.WebService.csproj" />
   <Project Path="CitySim.Simulation/CitySim.Simulation.csproj" />
+  <Project Path="TypedArch.Validator/TypedArch.Validator.csproj" />
   <Project Path="TypedArch.Tests/TypedArch.Tests.csproj" />
   <Project Path="TypedArch/TypedArch.csproj" />
 </Solution>

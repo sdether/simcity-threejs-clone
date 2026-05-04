@@ -44,27 +44,4 @@ public static class CitizenFactory
         );
         return citizen;
     }
-
-    public static void Move(World world, Entity building, Entity citizen)
-    {
-        var replace = false;
-        if (citizen.Has<Residency>())
-        {
-            ref var residency = ref citizen.Get<Residency>();
-            replace = true;
-            world.ResidentsByResidence[residency.Building].Remove(citizen);
-        }
-
-        var newResidency = new Residency(building);
-        if (replace)
-        {
-            citizen.Set(newResidency);
-        }
-        else
-        {
-            citizen.Add(newResidency);
-        }
-
-        world.ResidentsByResidence[building].Add(citizen);
-    }
 }

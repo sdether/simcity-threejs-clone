@@ -1,9 +1,39 @@
 using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
+using CitySim.Simulation.Systems;
+using CitySim.Simulation.Systems.Buildings;
+using CitySim.Simulation.Systems.Citizens;
+using TypedArch;
 
 namespace CitySim.Simulation.Model;
 
 using EcsWorld = Arch.Core.World;
+
+interface IArcheTypes
+{
+    ICitizen Citizen { get; }
+    IPowerLine PowerLine { get; }
+    IRoad Road { get; }
+    IPowerPlant PowerPlant { get; }
+    IResidential Residential { get; }
+    ICommercial Commercial { get; }
+    IIndustrial Industrial { get; } 
+}
+
+interface ISystems 
+{
+    BuildingStateSystem BuildingStateSystem { get; }
+    CommerceSystem CommerceSystem { get; }
+    DevelopmentSystem DevelopmentSystem { get; }
+    JobsSystem JobsSystem { get; }
+    ResidentsSystem ResidentsSystem { get; }
+    RoadAccessSystem RoadAccessSystem { get; }
+    VacancySystem VacancySystem { get; }
+    EmploymentSystem EmploymentSystem { get; }
+    HomelessnessSystem HomelessnessSystem { get; }
+    PowerSystem PowerSystem { get; }
+}
 
 public class World
 {
@@ -15,9 +45,12 @@ public class World
     public readonly Dictionary<int, Entity> EntitiesById = new ();
     public readonly Dictionary<Entity, HashSet<Entity>> EmployeesByEmployer = new();
     public readonly Dictionary<Entity, HashSet<Entity>> ResidentsByResidence = new();
-    public readonly EcsWorld Ecs = EcsWorld.Create();
+
+    private readonly TypedWorld<IArcheTypes, ISystems> _typedEcs = new();
     private readonly HashSet<GridPosition> _changedTiles = [];
     private readonly Dictionary<GridPosition,Entity?> _tiles =new();
+
+    public EcsWorld Ecs => _typedEcs.Inner;
     
     public World(string name, int size)
     {

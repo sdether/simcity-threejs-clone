@@ -1,5 +1,7 @@
 using Arch.Core;
 using CitySim.Simulation.Components;
+using CitySim.Simulation.Entities;
+using TypedArch;
 
 namespace CitySim.Simulation.Systems.Buildings;
 
@@ -7,14 +9,14 @@ using CitySim.Simulation.Model;
 
 public class CommerceSystem : SimSystem
 {
-    public CommerceSystem() : base(new QueryDescription().WithAll<GridPosition,Development, Commercial, Employer>())
-    {
-    }
-
+    
+    private static readonly TypedQueryDescription<ICommercial> CommerceQuery = TypedQueryDescription
+        .Satisfies<ICommercial>()
+        .WithAll<GridPosition,Development, Commercial, Employer>();
 
     public override void Run(World world)
     {
-        world.Ecs.Query(in QueryDescription,
+        world.Ecs.Query(in CommerceQuery.Inner,
             (Entity entity, ref GridPosition position, ref Development development, ref Commercial commercial, ref Employer employer) =>
             {
                 if (development.Level < 1) return;

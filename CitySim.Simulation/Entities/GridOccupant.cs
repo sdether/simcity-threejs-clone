@@ -7,6 +7,7 @@ interface IGridOccupant : IAbstractArcheType
 {
     GridPosition GridPosition { get; }
     PowerConductor PowerConductor { get; }
+    BuildingState BuildingState { get; }
 }
 
 interface IGridOccupantWithRoadAccess : IGridOccupant
@@ -18,6 +19,11 @@ interface IBuilding : IGridOccupantWithRoadAccess
 {
     PowerConsumer PowerConsumer { get; }
     Development Development { get; }
+}
+
+interface IEmployer : IBuilding
+{
+    Employer Employer { get; }
 }
 
 interface IPowerLine : IGridOccupant, IArcheType
@@ -35,17 +41,18 @@ interface IPowerPlant : IGridOccupantWithRoadAccess, IArcheType
     PowerPlant PowerPlant { get; }
 }
 
-interface IResidential : IGridOccupantWithRoadAccess, IArcheType
+interface IResidential : IBuilding, IArcheType
 {
     Residence Residence { get; }
+    Vacancies? Vacancies { get; }
 }
 
-interface ICommercial : IGridOccupantWithRoadAccess, IArcheType
+interface ICommercial : IEmployer, IArcheType
 {
     Commercial Commercial { get; }
 }
 
-interface IIndustrial: IGridOccupantWithRoadAccess, IArcheType
+interface IIndustrial: IEmployer, IArcheType
 {
     Industrial Industrial { get; }
 }
